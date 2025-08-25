@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>KYC Submission Confirmed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #dddddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #888888;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            border-radius: 0 0 10px 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>DSA 360 Solution</h1>
+            <h2>KYC Submission Confirmed - <span th:text="${dsaId}">[DSA ID]</span> </h2>
+        </div>
+        <div class="content">
+            <p>Dear <span th:text="${dsaName}">[DSA Name]</span>,</p>
+            <p>We are pleased to inform you that your KYC (Know Your Customer) information has been successfully submitted!</p>
+            <p>Thank you for providing the necessary details. Your information is currently under review by our verification team.</p>
+            <p>Once the verification process is completed, you will receive a confirmation email regarding the status of your KYC.</p>
+            <h3>Here are your submitted details:</h3>
+			<li><strong>KYC Id:</strong> <span th:text="${kycId}">[KYC Id]</span></li>
+			<li><strong>Full Name:</strong> <span th:text="${dsaName}">[Full Name]</span></li>
+			<li><strong>Email:</strong> <span th:text="${email}">[Email]</span></li>
+			<li><strong>Contact Number:</strong> <span th:text="${contactNumber}">[Contact Number]</span></li>
+			<li><strong>Address:</strong> <span th:text="${address}">[Address]</span></li>
+			<!-- CHANGED/ADDED: Display images inline using CIDs -->
+			<li><strong>Provided Documents as attached:</strong>
+				<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+					<span th:each="cid : ${docImageCids}">
+						<img th:src="'cid:' + ${cid}" alt="Document"
+							style="width: 100px; height: auto; border: 1px solid #ccc; border-radius: 5px;" />
+					</span>
+				</div>
+			</li>
+			<!--END CHANGE -->
+			</ul>
+            <p>Thank you for your cooperation and trust in DSA 360 Solution.</p>
+            <p>Best regards,</p>
+            <p><strong>DSA 360 Solution Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>&copy; <span th:text="${#dates.year(#calendars.createNow().time)}"></span> DSA 360 Solution. All rights reserved.</p>
+            <p>If you did not request this email, please contact support.</p>
+        </div>
+    </div>
+</body>
+</html>

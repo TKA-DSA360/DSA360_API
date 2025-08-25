@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  mysqldb:
+    container_name: mysqldb
+    image: mysql:8.0.35
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dsa360
+      MYSQL_PASSWORD: root
+    ports:
+      - "3307:3306" 
+    networks:
+      - springboot-mysql-network
+
+  dsa360api:
+    container_name: dsa360container
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8091"
+    depends_on:
+      - mysqldb
+      
+    networks:
+      springboot-mysql-network:
+    restart: on-failure
+      
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/dsa360?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+networks:
+  springboot-mysql-network:
+    driver: bridge

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Loan Application Status</title>
+<style>
+body {
+	font-family: Arial, sans-serif;
+	background-color: #f4f4f4;
+	margin: 0;
+	padding: 0;
+}
+
+.email-container {
+	max-width: 600px;
+	margin: 20px auto;
+	background-color: #ffffff;
+	padding: 20px;
+	border: 1px solid #dddddd;
+	border-radius: 10px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+	background-color: #28a745; /* green for loans */
+	color: #ffffff;
+	padding: 10px;
+	text-align: center;
+	border-radius: 10px 10px 0 0;
+}
+
+.content {
+	padding: 20px;
+	color: #333333;
+}
+
+.footer {
+	background-color: #f4f4f4;
+	color: #888888;
+	text-align: center;
+	padding: 10px;
+	font-size: 12px;
+	border-radius: 0 0 10px 10px;
+}
+
+.btn {
+	display: inline-block;
+	padding: 10px 20px;
+	font-size: 16px;
+	color: #ffffff;
+	background-color: #28a745;
+	text-decoration: none;
+	border-radius: 5px;
+	margin-top: 20px;
+}
+</style>
+</head>
+<body>
+	<div class="email-container">
+		<div class="header">
+			<h1>DSA 360 Solution</h1>
+			<h2>
+				Loan Application <span th:text="${reviewStatus}">[Review Status]</span>
+			</h2>
+		</div>
+		<div class="content">
+			<p>
+				Dear <span th:text="${dsaName}">[DSA Name]</span>,
+			</p>
+
+			<!-- Approved Loan -->
+			<div th:if="${reviewStatus == 'Approved'}">
+				<p>Good news! The loan application submitted under your DSA ID
+					(<span th:text="${dsaId}">[DSA ID]</span>) has been <strong>approved</strong>.</p>
+				<p>The applicant will be notified, and the disbursement process will start shortly.</p>
+			</div>
+
+			<!-- Under Review Loan -->
+			<div th:if="${reviewStatus == 'Under Review'}">
+				<p>The loan application submitted under your DSA ID
+					(<span th:text="${dsaId}">[DSA ID]</span>) is currently <strong>under review</strong>.</p>
+				<p>Our team is verifying the details. We will notify you once the decision is finalized.</p>
+			</div>
+
+			<!-- Rejected Loan -->
+			<div th:if="${reviewStatus == 'Rejected'}">
+				<p>We regret to inform you that the loan application submitted under
+					your DSA ID (<span th:text="${dsaId}">[DSA ID]</span>) has been <strong>rejected</strong>.</p>
+				<p>If you believe this is an error or require clarification, please contact our support team.</p>
+			</div>
+
+			<p>Thank you for your continued partnership with DSA 360 Solution.</p>
+			<p>Best regards,</p>
+			<p>
+				<strong>DSA 360 Solution Team</strong>
+			</p>
+		</div>
+		<div class="footer">
+			<p>
+				&copy; <span th:text="${#dates.year(#calendars.createNow().time)}"></span>
+				DSA 360 Solution. All rights reserved.
+			</p>
+			<p>If you did not request this email, please contact support.</p>
+		</div>
+	</div>
+</body>
+</html>
