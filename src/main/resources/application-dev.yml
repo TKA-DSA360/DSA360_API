@@ -1,0 +1,66 @@
+
+server:
+  port: 8091
+  hostname: localhost
+  servlet:
+    session:
+      persistent: false
+
+file:
+  upload:
+    kyc: C:/Workspace/final industrialproject/NG_DSA360/src/assets/images/kyc-docs
+    customer: C:/Workspace/final industrialproject/NG_DSA360/src/assets/images/customer	
+
+logging:
+  file:
+    name: log/dsa360.log
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} - %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/dsa360?createDatabaseIfNotExist=true
+    username: root
+    password: admin
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      auto-commit: true
+      minimum-idle: 10
+      maximum-pool-size: 20
+      idle-timeout: 30000  # 30 seconds
+      max-lifetime: 1800000  # 30 minutes
+      connection-timeout: 30000  # 30 seconds
+      pool-name: HikariPool-DSA360
+  jpa:
+    hibernate:
+      ddl-auto: update		
+        
+  mail:
+    host: smtp.gmail.com
+    password: tgeq rdlf ekap zncn
+    username: dsa360api@gmail.com
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+    metrics:
+      enabled: true
