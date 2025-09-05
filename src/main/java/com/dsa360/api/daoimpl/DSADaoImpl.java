@@ -12,6 +12,7 @@ import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.constants.ReviewType;
@@ -34,18 +35,19 @@ import com.dsa360.api.utility.MailAsyncServices;
 @Repository
 public class DSADaoImpl implements DSADao {
 
-    private final MailAsyncServices mailAsyncServices;
+	private final MailAsyncServices mailAsyncServices;
 
 	private static final Logger logger = LoggerFactory.getLogger(DSADaoImpl.class);
 	private static final String EMAILEXCPN = "Exception occurred during email verification ";
 	private static final String EMAILVERFAILED = "Something went wrong  during email verification ";
 	private static final String DSAAPPID = "dsaApplicationId";
 	@Autowired
+	@Qualifier("tenantSessionFactory")
 	private SessionFactory factory;
 
-    DSADaoImpl(MailAsyncServices mailAsyncServices) {
-        this.mailAsyncServices = mailAsyncServices;
-    }
+	DSADaoImpl(MailAsyncServices mailAsyncServices) {
+		this.mailAsyncServices = mailAsyncServices;
+	}
 
 	@Override
 	public DsaApplicationEntity getDSAById(String dsaID) {
@@ -81,7 +83,7 @@ public class DSADaoImpl implements DSADao {
 
 			transaction = session.beginTransaction();
 			session.save(dsaRegistrationEntity);
-			
+
 			transaction.commit();
 			logger.info("DSA registration successful for: {}",
 					dsaRegistrationEntity.getDsaApplicationId() + " " + dsaRegistrationEntity.getFirstName());
@@ -140,38 +142,30 @@ public class DSADaoImpl implements DSADao {
 					throw new ResourceNotFoundException(dataNotFound);
 				}
 
+			} else if (ReviewType.LOAN.getValue().equals(type)) {
+				LoanApplicationEntity dsaLoanEntity = session.get(LoanApplicationEntity.class, id);
+
+				if (dsaLoanEntity != null) {
+					transaction = session.beginTransaction();
+					dsaLoanEntity.setApprovalStatus(approvalStatus);
+					session.update(dsaLoanEntity);
+					transaction.commit();
+					CustomerEntity customer = dsaLoanEntity.getCustomer();
+					if (customer == null) {
+						throw new ResourceNotFoundException("Customer not linked to Loan");
+					}
+					String customerEmail = customer.getEmail();
+					String customerName = customer.getName();
+					String customerId = customer.getId();
+
+					mailAsyncServices.dsaReviewMail(customerEmail, customerName, approvalStatus,
+							ReviewType.LOAN.getValue(), customerId);
+
+					return getDSAById(dsaLoanEntity.getCustomer().getDsaAgentId().getDsaApplicationId());
+				} else {
+					throw new ResourceNotFoundException(dataNotFound);
+				}
 			}
-			else if (ReviewType.LOAN.getValue().equals(type)) {
-			    LoanApplicationEntity dsaLoanEntity = session.get(LoanApplicationEntity.class, id);
-
-			    if (dsaLoanEntity != null) {
-			        transaction = session.beginTransaction();
-			        dsaLoanEntity.setApprovalStatus(approvalStatus);
-			        session.update(dsaLoanEntity);
-			        transaction.commit();
-			        CustomerEntity customer = dsaLoanEntity.getCustomer();
-			        if (customer == null) {
-			            throw new ResourceNotFoundException("Customer not linked to Loan");
-			        }
-			        String customerEmail = customer.getEmail();
-			        String customerName  = customer.getName();
-			        String customerId    = customer.getId();
-
-			        mailAsyncServices.dsaReviewMail(
-			            customerEmail,
-			            customerName,
-			            approvalStatus,
-			            ReviewType.LOAN.getValue(),
-			            customerId
-			        );
-
-			        return getDSAById(dsaLoanEntity.getCustomer().getDsaAgentId().getDsaApplicationId());
-			    } else {
-			        throw new ResourceNotFoundException(dataNotFound);
-			    }
-			}
-
-
 
 		} catch (ResourceNotFoundException e) {
 			throw new ResourceNotFoundException("Data not found ");
@@ -183,7 +177,6 @@ public class DSADaoImpl implements DSADao {
 		return null;
 
 	}
-
 
 	@Override
 	public boolean systemUserKyc(DsaKycEntity dsa_KYC_Entity, List<Path> storedFilePaths) {
@@ -262,7 +255,7 @@ public class DSADaoImpl implements DSADao {
 			return dsaEntity;
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error(EMAILEXCPN +"request", e);
+			logger.error(EMAILEXCPN + "request", e);
 			throw new SomethingWentWrongException("Something went wrong  during email verification request");
 		}
 
@@ -327,12 +320,12 @@ public class DSADaoImpl implements DSADao {
 			dsaIdList = criteria.list();
 			// restriction for check is this system user
 			var criteria2 = session.createCriteria(SystemUserEntity.class)
-				    .setProjection(Projections.property("dsaApplicationId.dsaApplicationId")) // Extracting ID from the entity
-				    .add(Restrictions.isNotNull(DSAAPPID));
+					.setProjection(Projections.property("dsaApplicationId.dsaApplicationId")) // Extracting ID from the
+																								// entity
+					.add(Restrictions.isNotNull(DSAAPPID));
 
-				List<String> dsaIDs = criteria2.list();
-			
-			
+			List<String> dsaIDs = criteria2.list();
+
 			System.out.println("********  IDSSSSSSS *******************");
 			for (String string : dsaIDs) {
 				System.out.println(string);

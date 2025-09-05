@@ -36,5 +36,5 @@ public class ReconciliationEntity extends BaseEntity {
     private String remarks;
     private LocalDateTime reconciledAt;
 
-    // getters/setters
+    
 }

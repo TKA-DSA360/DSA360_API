@@ -3,13 +3,13 @@ package com.dsa360.api.daoimpl;
 import java.util.List;
 
 import org.hibernate.Query;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.dao.AdminDao;
@@ -29,6 +29,7 @@ public class AdminDaoImpl implements AdminDao {
 	private static final String DATANOTFOUND = "Data not found to delete with id = ";
 
 	@Autowired
+	 @Qualifier("tenantSessionFactory")
 	private SessionFactory factory;
 
 	@Autowired

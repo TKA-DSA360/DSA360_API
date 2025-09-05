@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.dao.AuditLogDao;
@@ -13,6 +14,7 @@ import com.dsa360.api.entity.AuditLog;
 public class AuditLogDaoImpl implements AuditLogDao {
 
 	@Autowired
+	 @Qualifier("tenantSessionFactory")
 	private SessionFactory sf;
 
 	@Override

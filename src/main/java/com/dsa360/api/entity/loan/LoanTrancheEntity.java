@@ -1,11 +1,11 @@
 package com.dsa360.api.entity.loan;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -29,7 +29,8 @@ public class LoanTrancheEntity extends BaseEntity {
     @Id
     private String id;
 
-    private Double trancheAmount;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal trancheAmount;   
 
     private LocalDate disbursementDate;
 
@@ -37,3 +38,4 @@ public class LoanTrancheEntity extends BaseEntity {
     @JoinColumn(name = "loan_disbursement_id", nullable = false)
     private LoanDisbursementEntity disbursement;
 }
+

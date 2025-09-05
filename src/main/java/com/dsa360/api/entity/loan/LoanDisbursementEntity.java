@@ -1,8 +1,11 @@
 package com.dsa360.api.entity.loan;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -19,8 +22,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@Table(name = "loan_disbursements")
 @Entity
+@Table(name = "loan_disbursements")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,16 +31,17 @@ import lombok.NoArgsConstructor;
 public class LoanDisbursementEntity extends BaseEntity {
 
     @Id
-    private String id;
+    private String id;  
 
-    private Double totalDisbursed = 0.0;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal totalDisbursed = BigDecimal.ZERO;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "loan_application_id", nullable = false, unique = true)
     private LoanApplicationEntity loanApplication;
 
     @OneToMany(mappedBy = "disbursement", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LoanTrancheEntity> tranches;
+    private List<LoanTrancheEntity> tranches = new ArrayList<>();
 
     @Version
     private Long version;
