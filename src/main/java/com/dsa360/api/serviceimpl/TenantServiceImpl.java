@@ -27,10 +27,24 @@ import com.dsa360.api.config.TenantContext;
 import com.dsa360.api.config.TenantRoutingDataSource;
 import com.dsa360.api.dao.TenantDao;
 import com.dsa360.api.dto.DSAApplicationDTO;
+import com.dsa360.api.entity.AuditLog;
+import com.dsa360.api.entity.ContactUsEntity;
+import com.dsa360.api.entity.CustomerEntity;
+import com.dsa360.api.entity.DocumentEntity;
 import com.dsa360.api.entity.DsaApplicationEntity;
+import com.dsa360.api.entity.DsaKycEntity;
 import com.dsa360.api.entity.RegionsEntity;
 import com.dsa360.api.entity.RoleEntity;
 import com.dsa360.api.entity.SystemUserEntity;
+import com.dsa360.api.entity.loan.DisbursementEntity;
+import com.dsa360.api.entity.loan.LoanApplicationEntity;
+import com.dsa360.api.entity.loan.LoanConditioEntity;
+import com.dsa360.api.entity.loan.LoanDisbursementEntity;
+import com.dsa360.api.entity.loan.LoanTrancheEntity;
+import com.dsa360.api.entity.loan.ReconciliationEntity;
+import com.dsa360.api.entity.loan.RepaymentEntity;
+import com.dsa360.api.entity.loan.TrancheAuditEntity;
+import com.dsa360.api.entity.loan.TrancheEntity;
 import com.dsa360.api.entity.master.TenantEntity;
 import com.dsa360.api.exceptions.SomethingWentWrongException;
 import com.dsa360.api.service.TenantService;
@@ -244,6 +258,23 @@ public class TenantServiceImpl implements TenantService {
 						.applySetting("hibernate.format_sql", "true").build();
 
 				MetadataSources sources = new MetadataSources(registry);
+				
+				sources.addAnnotatedClass(AuditLog.class);
+				sources.addAnnotatedClass(ContactUsEntity.class);
+				sources.addAnnotatedClass(CustomerEntity.class);
+				sources.addAnnotatedClass(DocumentEntity.class);
+				sources.addAnnotatedClass(DsaKycEntity.class);
+				
+				sources.addAnnotatedClass(DisbursementEntity.class);
+				sources.addAnnotatedClass(LoanApplicationEntity.class);
+				sources.addAnnotatedClass(LoanConditioEntity.class);
+				sources.addAnnotatedClass(LoanDisbursementEntity.class);
+				sources.addAnnotatedClass(LoanTrancheEntity.class);
+				sources.addAnnotatedClass(ReconciliationEntity.class);
+				sources.addAnnotatedClass(RepaymentEntity.class);
+				sources.addAnnotatedClass(TrancheAuditEntity.class);
+				sources.addAnnotatedClass(TrancheEntity.class);
+				
 				sources.addAnnotatedClass(RoleEntity.class);
 				sources.addAnnotatedClass(SystemUserEntity.class);
 				sources.addAnnotatedClass(DsaApplicationEntity.class);
