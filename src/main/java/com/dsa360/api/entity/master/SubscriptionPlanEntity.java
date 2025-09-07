@@ -2,6 +2,8 @@ package com.dsa360.api.entity.master;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -12,7 +14,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-
 @Table(name = "subscription_plans")
 @Entity
 @Data
@@ -20,27 +21,34 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SubscriptionPlanEntity extends BaseEntity {
-    @Id
-    @Column(name = "plan_id")
-    private String planId;
+	@Id
+	@Column(name = "plan_id", nullable = false, unique = true, length = 50)
+	
+	private String planId;
 
-    @Column(name = "plan_name", nullable = false)
-    private String planName;
+	@Column(name = "plan_name", nullable = false, length = 100)
+	private String planName;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+	@Column(name = "description", length = 500)
+	private String description;
 
-    @Column(name = "monthly_price")
-    private Double monthlyPrice;
+	@Column(name = "monthly_price", nullable = false)
+	private double monthlyPrice;
 
-    @Column(name = "max_users")
-    private Integer maxUsers;
+	@Column(name = "max_users", nullable = false)
+	private int maxUsers;
 
-    @Column(name = "max_loans")
-    private Integer maxLoans; // NBFC-specific
+	@Column(name = "trial_period_days", nullable = false)
+	private int trialPeriodDays;
 
-    @Column(name = "api_rate_limit")
-    private Integer apiRateLimit;
+	@Column(name = "billing_cycle", nullable = false, length = 50)
+	private String billingCycle;
 
-    
+	@Column(name = "currency", nullable = false, length = 10)
+	private String currency;
+
+	// Storing as comma-separated string, can be split into list in service
+	@Column(name = "features", length = 1000)
+	private String features;
+
 }

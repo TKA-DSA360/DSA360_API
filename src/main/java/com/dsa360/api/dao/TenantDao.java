@@ -1,6 +1,10 @@
 package com.dsa360.api.dao;
 
 import java.util.List;
+
+import com.dsa360.api.entity.RegionsEntity;
+import com.dsa360.api.entity.RoleEntity;
+import com.dsa360.api.entity.SystemUserEntity;
 import com.dsa360.api.entity.master.TenantEntity;
 
 public interface TenantDao {
@@ -11,4 +15,6 @@ public interface TenantDao {
 	void save(TenantEntity tenant);
 
 	void delete(String tenantId);
+	
+	void saveTenantEntities(String tenantId, RoleEntity adminRole, RegionsEntity defaultRegion, SystemUserEntity adminUser);
 }

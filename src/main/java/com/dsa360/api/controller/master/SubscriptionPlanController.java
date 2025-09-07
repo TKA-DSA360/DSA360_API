@@ -19,7 +19,7 @@ public class SubscriptionPlanController {
     private SubscriptionPlanService planService;
 
     @PreAuthorize("hasRole('ROLE_MASTER')")
-    @PostMapping
+    @PostMapping("/create-plan")
     public ResponseEntity<SubscriptionPlanDTO> createPlan(@RequestBody SubscriptionPlanDTO planDTO) {
         TenantContext.setCurrentTenant("master");
         try {

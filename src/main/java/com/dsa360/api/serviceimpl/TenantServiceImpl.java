@@ -3,14 +3,12 @@ package com.dsa360.api.serviceimpl;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -66,10 +64,6 @@ public class TenantServiceImpl implements TenantService {
 	private DSAServiceImpl dsaServiceImpl;
 
 	@Autowired
-	@Qualifier("tenantSessionFactory")
-	private SessionFactory tenantSessionFactory;
-
-	@Autowired
 	@Qualifier("routingDataSource")
 	private TenantRoutingDataSource routingDataSource;
 
@@ -112,7 +106,7 @@ public class TenantServiceImpl implements TenantService {
 			// Verify schema creation
 			verifyTenantSchema(tenantId, tenantDataSource);
 
-			// Save default role,region, dsa application and user in tenant database
+			// Save default role, region, DSA application, and user in tenant database
 			saveTenantEntities(tenantId, tenantName);
 
 			log.info("Tenant registered successfully: {}", tenantId);
@@ -127,97 +121,62 @@ public class TenantServiceImpl implements TenantService {
 
 	@Transactional("tenantTransactionManager")
 	private void saveTenantEntities(String tenantId, String tenantName) {
-		TenantContext.setCurrentTenant(tenantId);
+		// Create default role
+		RoleEntity adminRole = new RoleEntity();
+		adminRole.setId(DynamicID.getGeneratedRoleId());
+		adminRole.setName("ROLE_ADMIN");
+		adminRole.setCreatedAt(LocalDateTime.now());
 
-		try {
-			// Create default role
-			RoleEntity adminRole = null;
-			RegionsEntity defaultRegion = null;
-			try (var session = tenantSessionFactory.openSession()) {
-				Transaction transaction = session.beginTransaction();
-				adminRole = new RoleEntity();
-				adminRole.setId(DynamicID.getGeneratedRoleId());
-				adminRole.setName("ROLE_ADMIN");
-				adminRole.setCreatedAt(LocalDateTime.now());
-				session.save(adminRole);
-                transaction.commit();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		// Create default region
+		RegionsEntity defaultRegion = new RegionsEntity();
+		defaultRegion.setId(DynamicID.getGeneratedRegionId());
+		defaultRegion.setRegionName("Default Region");
+		defaultRegion.setRegionCode("DR001");
 
-			// Create default region
-			try (var session = tenantSessionFactory.openSession()) {
-				Transaction transaction = session.beginTransaction();
+		// Create default DSA Application
+		DSAApplicationDTO applicationDTO = new DSAApplicationDTO();
+		applicationDTO.setFirstName("TenantAdmin");
+		applicationDTO.setMiddleName("TenantAdmin");
+		applicationDTO.setLastName("TenantAdmin");
+		applicationDTO.setGender("Female");
+		applicationDTO.setDateOfBirth("2025-09-25");
+		applicationDTO.setNationality("Indian");
+		applicationDTO.setContactNumber("98257245");
+		applicationDTO.setEmailAddress("thekiranacademyojtdev@gmail.com");
+		applicationDTO.setStreetAddress("14 Powai Road");
+		applicationDTO.setCity("Mumbai");
+		applicationDTO.setState("Maharashtra");
+		applicationDTO.setPostalCode("400076");
+		applicationDTO.setCountry("India");
+		applicationDTO.setPreferredLanguage("Hindi");
+		applicationDTO.setEducationalQualifications("Master of Business Administration");
+		applicationDTO.setExperience("7 years in finance and accounting");
+		applicationDTO.setIsAssociatedWithOtherDSA("NO");
+		applicationDTO.setAssociatedInstitutionName("NA");
+		applicationDTO.setReferralSource("Job portal");
 
-				defaultRegion = new RegionsEntity();
-				defaultRegion.setId(DynamicID.getGeneratedRegionId());
-				defaultRegion.setRegionName("Default Region");
-				defaultRegion.setRegionCode("DR001");
-				session.save(defaultRegion);
-				                transaction.commit();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		DSAApplicationDTO dsaApplication = dsaServiceImpl.dsaApplication(applicationDTO);
 
-			// Create default DSA Application
-			try (var session = tenantSessionFactory.openSession()) {
-				Transaction transaction = session.beginTransaction();
+		// Create default admin user
+		SystemUserEntity adminUser = new SystemUserEntity();
+		adminUser.setUsername("tenant_admin_" + tenantName);
+		adminUser.setPassword(passwordEncoder.encode("Temp@123"));
+		adminUser.setQuestion("Default question");
+		adminUser.setAnswer("Default answer");
+		adminUser.setStatus("ACTIVE");
+		adminUser.setCreatedAt(LocalDateTime.now());
+		adminUser.setRoles(Collections.singletonList(adminRole));
+		adminUser.setRegions(Collections.singletonList(defaultRegion));
 
-				DSAApplicationDTO applicationDTO = new DSAApplicationDTO();
-				applicationDTO.setFirstName("TenantAdmin");
-				applicationDTO.setMiddleName("TenantAdmin");
-				applicationDTO.setLastName("TenantAdmin");
-				applicationDTO.setGender("Female");
-				applicationDTO.setDateOfBirth("2025-09-25");
-				applicationDTO.setNationality("Indian");
-				applicationDTO.setContactNumber("98257245");
-				applicationDTO.setEmailAddress("thekiranacademyojtdev@gmail.com");
-				applicationDTO.setStreetAddress("14 Powai Road");
-				applicationDTO.setCity("Mumbai");
-				applicationDTO.setState("Maharashtra");
-				applicationDTO.setPostalCode("400076");
-				applicationDTO.setCountry("India");
-				applicationDTO.setPreferredLanguage("Hindi");
-				applicationDTO.setEducationalQualifications("Master of Business Administration");
-				applicationDTO.setExperience("7 years in finance and accounting");
-				applicationDTO.setIsAssociatedWithOtherDSA("NO");
-				applicationDTO.setAssociatedInstitutionName("NA");
-				applicationDTO.setReferralSource("Job portal");
-
-				DSAApplicationDTO dsaApplication = dsaServiceImpl.dsaApplication(applicationDTO);
-
-				if (dsaApplication != null) {
-					// Create default admin user
-					SystemUserEntity adminUser = new SystemUserEntity();
-					adminUser.setUsername("tenant_admin_" + tenantName);
-					adminUser.setPassword(passwordEncoder.encode("Temp@123"));
-					adminUser.setQuestion("Default question");
-					adminUser.setAnswer("Default answer");
-					adminUser.setStatus("ACTIVE");
-					adminUser.setCreatedAt(LocalDateTime.now());
-
-					adminUser.setRoles(Collections.singletonList(adminRole));
-					adminUser.setRegions(Collections.singletonList(defaultRegion));
-
-					DsaApplicationEntity applicationEntity = mapper.map(dsaApplication, DsaApplicationEntity.class);
-					adminUser.setDsaApplicationId(applicationEntity);
-
-					session.save(adminUser);
-                    transaction.commit();
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			// Saved role and user in tenant database
-			log.info("Saving default role,region,dsa application and admin user in tenant database: tenantId={}",
-					tenantId);
-
-		} finally {
-			TenantContext.clear();
+		if (dsaApplication != null) {
+			DsaApplicationEntity applicationEntity = mapper.map(dsaApplication, DsaApplicationEntity.class);
+			adminUser.setDsaApplicationId(applicationEntity);
 		}
 
+		// Delegate to DAO for persistence
+		tenantDao.saveTenantEntities(tenantId, adminRole, defaultRegion, adminUser);
+
+		log.info("Default role, region, DSA application, and admin user prepared for tenantId={}", tenantId);
 	}
 
 	private DataSource createTenantDataSource(TenantEntity tenant) {
@@ -258,13 +217,11 @@ public class TenantServiceImpl implements TenantService {
 						.applySetting("hibernate.format_sql", "true").build();
 
 				MetadataSources sources = new MetadataSources(registry);
-				
 				sources.addAnnotatedClass(AuditLog.class);
 				sources.addAnnotatedClass(ContactUsEntity.class);
 				sources.addAnnotatedClass(CustomerEntity.class);
 				sources.addAnnotatedClass(DocumentEntity.class);
 				sources.addAnnotatedClass(DsaKycEntity.class);
-				
 				sources.addAnnotatedClass(DisbursementEntity.class);
 				sources.addAnnotatedClass(LoanApplicationEntity.class);
 				sources.addAnnotatedClass(LoanConditioEntity.class);
@@ -274,7 +231,6 @@ public class TenantServiceImpl implements TenantService {
 				sources.addAnnotatedClass(RepaymentEntity.class);
 				sources.addAnnotatedClass(TrancheAuditEntity.class);
 				sources.addAnnotatedClass(TrancheEntity.class);
-				
 				sources.addAnnotatedClass(RoleEntity.class);
 				sources.addAnnotatedClass(SystemUserEntity.class);
 				sources.addAnnotatedClass(DsaApplicationEntity.class);
