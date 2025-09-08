@@ -2,6 +2,8 @@ package com.dsa360.api.controller.master;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,26 +29,12 @@ public class SubscriptionController {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    @PreAuthorize("hasRole('ROLE_MASTER')")
-    @PostMapping
-    public ResponseEntity<SubscriptionDTO> createSubscription(@RequestBody SubscriptionDTO subscriptionDTO) {
-        String tenantId = TenantContext.getCurrentTenant();
-        if (tenantId == null) {
-            throw new SomethingWentWrongException("Tenant ID not set");
-        }
-        TenantContext.setCurrentTenant("master");
-        try {
-            subscriptionDTO.setTenantId(tenantId);
-            SubscriptionDTO createdSubscription = subscriptionService.createSubscription(subscriptionDTO);
-            return new ResponseEntity<>(createdSubscription, HttpStatus.CREATED);
-        } finally {
-            TenantContext.clear();
-        }
-    }
+   
 
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @GetMapping
     public ResponseEntity<List<SubscriptionDTO>> getSubscriptionsForTenant() {
+    	
         String tenantId = TenantContext.getCurrentTenant();
         if (tenantId == null) {
             throw new SomethingWentWrongException("Tenant ID not set");

@@ -28,7 +28,7 @@ import com.dsa360.api.utility.ObjectConverter;
  *
  */
 @Service
-@Transactional(readOnly = true)
+@Transactional("tenantTransactionManager")
 public class DSAServiceImpl implements DSAService {
 	private static final String KYCPATH = "assets/images/kyc-docs/";
 

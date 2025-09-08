@@ -39,6 +39,6 @@ public class SubscriptionPlanDTO {
 	@NotBlank(message = "Currency is required")
 	private String currency; // e.g. INR, USD
 
-	private List<String> features; // Optional features
+	private String features; // Optional features
 
 }

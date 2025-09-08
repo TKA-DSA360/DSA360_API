@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -21,8 +22,10 @@ public class SubscriptionDAOImpl implements SubscriptionDAO {
 
     @Override
     public void save(SubscriptionEntity entity) {
-        try (Session session = sessionFactory.getCurrentSession()) {
+        try (Session session = sessionFactory.openSession()) {
+        	Transaction transaction = session.beginTransaction();
             session.save(entity);
+            transaction.commit();   
         }
     }
 

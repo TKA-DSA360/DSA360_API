@@ -120,4 +120,26 @@ public class DynamicID {
 		int uniqueNumber = 1 + random.nextInt(999);
 		return type + "-" + uniqueNumber;
 	}
+	
+	// Tenant ID
+	public static String getGeneratedTenantId(String tenantName) {
+		// TEN-2025-AS123456
+		int currentYear = LocalDate.now().getYear();
+		String initials = tenantName.length() >= 2 ? tenantName.substring(0, 2).toUpperCase()
+				: tenantName.substring(0, 1).toUpperCase() + "X";
+
+		int uniqueNumber = 100000 + random.nextInt(900000);
+
+		return "TEN-" + currentYear + "-" + initials + uniqueNumber;
+	}
+	
+	// Subscription ID
+	public static String getGeneratedSubscriptionId() {
+		// SUB-2025-000001
+		int uniqueNumber = 1 + random.nextInt(999999);
+		int currentYear = LocalDate.now().getYear();
+		return "SUB-" + currentYear + "-" + String.format("%05d", uniqueNumber);
+		
+	}
+	
 }

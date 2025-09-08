@@ -14,7 +14,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-
 @Table(name = "tenants")
 @Entity
 @Data
@@ -23,25 +22,25 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TenantEntity extends BaseEntity {
 	@Id
-    @Column(name = "tenant_id")
-    private String tenantId;
+	@Column(name = "tenant_id")
+	private String tenantId;
 
-    @Column(name = "tenant_name")
-    private String tenantName;
+	@Column(name = "tenant_name")
+	private String tenantName;
 
-    @Column(name = "db_url")
-    private String dbUrl;
+	@Column(name = "db_url")
+	private String dbUrl;
 
-    @Column(name = "db_username")
-    private String dbUsername;
+	@Column(name = "db_username")
+	private String dbUsername;
 
-    @Column(name = "db_password")
-    private String dbPassword;
+	@Column(name = "db_password")
+	private String dbPassword;
 
-    @Column(name = "subscription_status")
-    private String subscriptionStatus;
+	@Column(name = "subscription_status")
+	private String subscriptionStatus;
 
-    @OneToOne(mappedBy = "tenant", cascade = CascadeType.ALL)
-    private SubscriptionEntity subscription;
-   
+	@OneToOne(mappedBy = "tenant", cascade = CascadeType.ALL)
+	private SubscriptionEntity subscription;
+
 }

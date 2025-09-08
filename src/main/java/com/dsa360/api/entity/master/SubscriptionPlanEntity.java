@@ -1,5 +1,7 @@
 package com.dsa360.api.entity.master;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,6 +30,9 @@ public class SubscriptionPlanEntity extends BaseEntity {
 
 	@Column(name = "plan_name", nullable = false, length = 100)
 	private String planName;
+	
+	@Column(name = "plan_type", nullable = false, length = 50)
+	private String planType; // e.g. Basic, Pro, Enterprise
 
 	@Column(name = "description", length = 500)
 	private String description;

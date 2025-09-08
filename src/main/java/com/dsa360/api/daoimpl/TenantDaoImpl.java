@@ -70,7 +70,7 @@ public class TenantDaoImpl implements TenantDao {
 
 	@Transactional("tenantTransactionManager")
 	public void saveTenantEntities(String tenantId, RoleEntity adminRole, RegionsEntity defaultRegion, SystemUserEntity adminUser) {
-		TenantContext.setCurrentTenant(tenantId);
+		
 		try {
 			// Save default role
 			try (Session session = tenantSessionFactory.openSession()) {
@@ -95,11 +95,7 @@ public class TenantDaoImpl implements TenantDao {
 			// Save default admin user and DSA application
 			try (Session session = tenantSessionFactory.openSession()) {
 				Transaction transaction = session.beginTransaction();
-				DsaApplicationEntity applicationEntity = adminUser.getDsaApplicationId();
-				if (applicationEntity != null) {
-					session.save(applicationEntity);
 					session.save(adminUser);
-				}
 				transaction.commit();
 			} catch (Exception e) {
 				e.printStackTrace();
