@@ -16,55 +16,59 @@ import com.dsa360.api.entity.master.SubscriptionEntity;
 @Repository
 public class SubscriptionDAOImpl implements SubscriptionDAO {
 
-    @Autowired
-    @Qualifier("tenantSessionFactory")
-    private SessionFactory sessionFactory;
+	@Autowired
+	@Qualifier("tenantSessionFactory")
+	private SessionFactory sessionFactory;
 
-    @Override
-    public void save(SubscriptionEntity entity) {
-        try (Session session = sessionFactory.openSession()) {
-        	Transaction transaction = session.beginTransaction();
-            session.save(entity);
-            transaction.commit();   
-        }
-    }
+	@Override
+	public void save(SubscriptionEntity entity) {
+		try (Session session = sessionFactory.openSession()) {
+			Transaction transaction = session.beginTransaction();
+			session.save(entity);
+			transaction.commit();
+		}
+	}
 
-    @Override
-    public List<SubscriptionEntity> findByTenantId(String tenantId) {
-        try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("FROM SubscriptionEntity WHERE tenant.tenantId = :tenantId", SubscriptionEntity.class)
-                    .setParameter("tenantId", tenantId)
-                    .getResultList();
-        }
-    }
+	@Override
+	public List<SubscriptionEntity> findByTenantId(String tenantId) {
+		try (Session session = sessionFactory.openSession()) {
+			return session
+					.createQuery("FROM SubscriptionEntity WHERE tenant.tenantId = :tenantId", SubscriptionEntity.class)
+					.setParameter("tenantId", tenantId).getResultList();
+		}
+	}
 
-    @Override
-    public Optional<SubscriptionEntity> findByIdAndTenantId(String subscriptionId, String tenantId) {
-        try (Session session = sessionFactory.getCurrentSession()) {
-            return Optional.ofNullable(session.createQuery("FROM SubscriptionEntity WHERE subscriptionId = :subscriptionId AND tenantId = :tenantId", SubscriptionEntity.class)
-                    .setParameter("subscriptionId", subscriptionId)
-                    .setParameter("tenantId", tenantId)
-                    .uniqueResult());
-        }
-    }
+	@Override
+	public Optional<SubscriptionEntity> findById(String subscriptionId) {
+		try (Session session = sessionFactory.getCurrentSession()) {
+			return Optional
+					.ofNullable(session
+							.createQuery("FROM SubscriptionEntity WHERE subscriptionId = :subscriptionId",
+									SubscriptionEntity.class)
+							.setParameter("subscriptionId", subscriptionId).uniqueResult());
+		}
+	}
 
-    @Override
-    public void update(SubscriptionEntity entity) {
-        try (Session session = sessionFactory.getCurrentSession()) {
-            session.update(entity);
-        }
-    }
+	@Override
+	public void update(SubscriptionEntity entity) {
+		try (Session session = sessionFactory.openSession()) {
+			Transaction transaction = session.beginTransaction();
+			session.update(entity);
+			transaction.commit();
+		}
+	}
 
-    @Override
-    public void delete(String subscriptionId, String tenantId) {
-        try (Session session = sessionFactory.getCurrentSession()) {
-            SubscriptionEntity entity = session.createQuery("FROM SubscriptionEntity WHERE subscriptionId = :subscriptionId AND tenantId = :tenantId", SubscriptionEntity.class)
-                    .setParameter("subscriptionId", subscriptionId)
-                    .setParameter("tenantId", tenantId)
-                    .uniqueResult();
-            if (entity != null) {
-                session.delete(entity);
-            }
-        }
-    }
+	@Override
+	public void delete(String subscriptionId, String tenantId) {
+		try (Session session = sessionFactory.getCurrentSession()) {
+			SubscriptionEntity entity = session
+					.createQuery(
+							"FROM SubscriptionEntity WHERE subscriptionId = :subscriptionId AND tenantId = :tenantId",
+							SubscriptionEntity.class)
+					.setParameter("subscriptionId", subscriptionId).setParameter("tenantId", tenantId).uniqueResult();
+			if (entity != null) {
+				session.delete(entity);
+			}
+		}
+	}
 }

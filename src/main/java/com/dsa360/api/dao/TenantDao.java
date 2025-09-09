@@ -16,5 +16,7 @@ public interface TenantDao {
 
 	void delete(String tenantId);
 	
+	void update(TenantEntity tenant);
+	
 	void saveTenantEntities(String tenantId, RoleEntity adminRole, RegionsEntity defaultRegion, SystemUserEntity adminUser);
 }

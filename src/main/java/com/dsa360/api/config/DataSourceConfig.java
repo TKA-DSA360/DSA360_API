@@ -33,20 +33,20 @@ public class DataSourceConfig {
 
     @Bean
     @ConfigurationProperties("spring.datasource")
-    public DataSourceProperties masterDataSourceProperties() {
+     DataSourceProperties masterDataSourceProperties() {
         return new DataSourceProperties();
     }
 
     @Bean
     @Qualifier("masterDataSource")
-    public DataSource masterDataSource() {
+     DataSource masterDataSource() {
         return masterDataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
     }
 
     @Bean
     @Primary
     @DependsOn("masterSessionFactory")
-    public DataSource routingDataSource(@Qualifier("masterDataSource") DataSource masterDataSource) {
+     DataSource routingDataSource(@Qualifier("masterDataSource") DataSource masterDataSource) {
         TenantRoutingDataSource routingDataSource = new TenantRoutingDataSource();
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put("master", masterDataSource);
@@ -82,12 +82,12 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public JdbcTemplate masterJdbcTemplate(@Qualifier("masterDataSource") DataSource masterDataSource) {
+     JdbcTemplate masterJdbcTemplate(@Qualifier("masterDataSource") DataSource masterDataSource) {
         return new JdbcTemplate(masterDataSource);
     }
 
     @Bean(name = "masterSessionFactory")
-    public LocalSessionFactoryBean masterSessionFactory(@Qualifier("masterDataSource") DataSource masterDataSource) {
+     LocalSessionFactoryBean masterSessionFactory(@Qualifier("masterDataSource") DataSource masterDataSource) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(masterDataSource);
         sessionFactory.setPackagesToScan("com.dsa360.api.entity.master");
@@ -102,7 +102,7 @@ public class DataSourceConfig {
 
     @Bean(name = "tenantSessionFactory")
     @DependsOn("routingDataSource")
-    public LocalSessionFactoryBean tenantSessionFactory(@Qualifier("routingDataSource") DataSource routingDataSource) {
+     LocalSessionFactoryBean tenantSessionFactory(@Qualifier("routingDataSource") DataSource routingDataSource) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(routingDataSource);
         sessionFactory.setPackagesToScan("com.dsa360.api.entity", "com.dsa360.api.entity.loan");
@@ -117,12 +117,12 @@ public class DataSourceConfig {
 
     @Bean
     @Primary
-    public PlatformTransactionManager masterTransactionManager(@Qualifier("masterSessionFactory") SessionFactory sessionFactory) {
+     PlatformTransactionManager masterTransactionManager(@Qualifier("masterSessionFactory") SessionFactory sessionFactory) {
         return new HibernateTransactionManager(sessionFactory);
     }
 
     @Bean
-    public PlatformTransactionManager tenantTransactionManager(@Qualifier("tenantSessionFactory") SessionFactory sessionFactory) {
+     PlatformTransactionManager tenantTransactionManager(@Qualifier("tenantSessionFactory") SessionFactory sessionFactory) {
         return new HibernateTransactionManager(sessionFactory);
     }
 }

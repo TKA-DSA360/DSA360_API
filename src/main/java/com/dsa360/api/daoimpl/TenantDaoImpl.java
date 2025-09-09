@@ -105,4 +105,16 @@ public class TenantDaoImpl implements TenantDao {
 			TenantContext.clear();
 		}
 	}
+
+	@Override
+	public void update(TenantEntity tenant) {
+		try (Session session = masterSessionFactory.openSession()) {
+			Transaction transaction = session.beginTransaction();
+			session.update(tenant);
+			transaction.commit();
+		} finally {
+			TenantContext.clear();
+		}
+		
+	}
 }

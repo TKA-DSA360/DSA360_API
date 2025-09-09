@@ -2,6 +2,7 @@ package com.dsa360.api.serviceimpl;
 
 import com.dsa360.api.config.TenantContext;
 import com.dsa360.api.config.TenantRoutingDataSource;
+import com.dsa360.api.constants.ApprovalStatus;
 import com.dsa360.api.dao.SubscriptionDAO;
 import com.dsa360.api.dao.TenantDao;
 import com.dsa360.api.dto.DSAApplicationDTO;
@@ -112,6 +113,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 		subscriptionDAO.save(entity);
 
+		// Active Tenant
+		tenant.setSubscriptionStatus("ACTIVE");
+		tenantDao.update(tenant);
+
 		// Create tenant DataSource and add to routingDataSource
 		DataSource tenantDataSource = createTenantDataSource(tenant);
 		routingDataSource.addTenantDataSource(subscriptionDTO.getTenantId(), tenantDataSource);
@@ -142,22 +147,26 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public SubscriptionDTO getSubscription(String subscriptionId, String tenantId) {
-		SubscriptionEntity entity = subscriptionDAO.findByIdAndTenantId(subscriptionId, tenantId)
+	public SubscriptionDTO getSubscription(String subscriptionId) {
+		SubscriptionEntity entity = subscriptionDAO.findById(subscriptionId)
 				.orElseThrow(() -> new SomethingWentWrongException("Subscription not found: " + subscriptionId));
 		return modelMapper.map(entity, SubscriptionDTO.class);
 	}
 
 	@Override
-	@Transactional
-	public SubscriptionDTO updateSubscription(SubscriptionDTO subscriptionDTO) {
-		SubscriptionEntity entity = subscriptionDAO
-				.findByIdAndTenantId(subscriptionDTO.getSubscriptionId(), subscriptionDTO.getTenantId())
-				.orElseThrow(() -> new SomethingWentWrongException(
-						"Subscription not found: " + subscriptionDTO.getSubscriptionId()));
-		modelMapper.map(subscriptionDTO, entity);
+	@Transactional("masterTransactionManager")
+	public SubscriptionDTO changeSubscriptionPlan(String subscriptionId, String newPlanId) {
+		SubscriptionEntity entity = subscriptionDAO.findById(subscriptionId)
+				.orElseThrow(() -> new SomethingWentWrongException("Subscription not found: " + subscriptionId));
+
+		SubscriptionPlanEntity newPlan = new SubscriptionPlanEntity();
+		newPlan.setPlanId(newPlanId);
+		entity.setPlan(newPlan);
+
 		subscriptionDAO.update(entity);
-		return modelMapper.map(entity, SubscriptionDTO.class);
+		SubscriptionDTO dto = modelMapper.map(entity, SubscriptionDTO.class);
+
+		return dto;
 	}
 
 	@Override
@@ -202,6 +211,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 		applicationDTO.setIsAssociatedWithOtherDSA("NO");
 		applicationDTO.setAssociatedInstitutionName("NA");
 		applicationDTO.setReferralSource("Job portal");
+		applicationDTO.setEmailVerified(true);
+		applicationDTO.setApprovalStatus(ApprovalStatus.APPROVED.getValue());
 
 		DSAApplicationDTO dsaApplication = dsaServiceImpl.dsaApplication(applicationDTO);
 

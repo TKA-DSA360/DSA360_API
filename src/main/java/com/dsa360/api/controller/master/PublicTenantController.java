@@ -5,7 +5,9 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,16 +30,31 @@ public class PublicTenantController {
 
 	@PostMapping("/register")
 	public ResponseEntity<String> registerTenant(@RequestParam String tenantName) {
+		TenantContext.setCurrentTenant("master");
 		String tenantId = tenantService.createTenant(tenantName);
 		return ResponseEntity.ok("Tenant registered with ID: " + tenantId);
 	}
 
 	@PostMapping("/subscriptions")
-	public ResponseEntity<SubscriptionDTO> createSubscription(@RequestBody @Valid SubscriptionDTO subscriptionDTO) {		
+	public ResponseEntity<SubscriptionDTO> createSubscription(@RequestBody @Valid SubscriptionDTO subscriptionDTO) {
 		try {
 			TenantContext.setCurrentTenant("master");
 			SubscriptionDTO createdSubscription = subscriptionService.createSubscription(subscriptionDTO);
 			return new ResponseEntity<>(createdSubscription, HttpStatus.CREATED);
+		} finally {
+			TenantContext.clear();
+		}
+	}
+
+	@PutMapping("/{subscriptionId}/change-plan")
+	public ResponseEntity<SubscriptionDTO> chnageSubscriptionPlan(@PathVariable String subscriptionId,
+			@RequestParam String newPlanId) {
+
+		TenantContext.setCurrentTenant("master");
+		try {
+			SubscriptionDTO updatedSubscription = subscriptionService.changeSubscriptionPlan(subscriptionId, newPlanId);
+			System.out.println("Updated Subscriptions: " + updatedSubscription);
+			return new ResponseEntity<SubscriptionDTO>(updatedSubscription, HttpStatus.OK);
 		} finally {
 			TenantContext.clear();
 		}

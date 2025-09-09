@@ -31,7 +31,7 @@ public class SubscriptionController {
 
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @GetMapping("/tenant")
-    public ResponseEntity<List<SubscriptionDTO>> getSubscriptionsForTenant(@RequestParam String tenantId) {
+    public ResponseEntity<List<SubscriptionDTO>> getSubscriptionsByTenant(@RequestParam String tenantId) {
     	
        
         if (tenantId == null) {
@@ -46,51 +46,18 @@ public class SubscriptionController {
     }
 
     @PreAuthorize("hasRole('ROLE_MASTER')")
-    @GetMapping("/{subscriptionId}")
-    public ResponseEntity<SubscriptionDTO> getSubscription(@PathVariable String subscriptionId) {
-        String tenantId = TenantContext.getCurrentTenant();
-        if (tenantId == null) {
-            throw new SomethingWentWrongException("Tenant ID not set");
-        }
+    @GetMapping
+    public ResponseEntity<SubscriptionDTO> getSubscription(@RequestParam String subscriptionId) {
+        
         TenantContext.setCurrentTenant("master");
         try {
-            return new ResponseEntity<>(subscriptionService.getSubscription(subscriptionId, tenantId), HttpStatus.OK);
+            return new ResponseEntity<>(subscriptionService.getSubscription(subscriptionId), HttpStatus.OK);
         } finally {
             TenantContext.clear();
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_MASTER')")
-    @PutMapping("/{subscriptionId}")
-    public ResponseEntity<SubscriptionDTO> updateSubscription(@PathVariable String subscriptionId, @RequestBody SubscriptionDTO subscriptionDTO) {
-        String tenantId = TenantContext.getCurrentTenant();
-        if (tenantId == null) {
-            throw new SomethingWentWrongException("Tenant ID not set");
-        }
-        TenantContext.setCurrentTenant("master");
-        try {
-            subscriptionDTO.setSubscriptionId(subscriptionId);
-            subscriptionDTO.setTenantId(tenantId);
-            SubscriptionDTO updatedSubscription = subscriptionService.updateSubscription(subscriptionDTO);
-            return new ResponseEntity<>(updatedSubscription, HttpStatus.OK);
-        } finally {
-            TenantContext.clear();
-        }
-    }
+   
 
-    @PreAuthorize("hasRole('ROLE_MASTER')")
-    @DeleteMapping("/{subscriptionId}")
-    public ResponseEntity<Void> deleteSubscription(@PathVariable String subscriptionId) {
-        String tenantId = TenantContext.getCurrentTenant();
-        if (tenantId == null) {
-            throw new SomethingWentWrongException("Tenant ID not set");
-        }
-        TenantContext.setCurrentTenant("master");
-        try {
-            subscriptionService.deleteSubscription(subscriptionId, tenantId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } finally {
-            TenantContext.clear();
-        }
-    }
+   
 }
