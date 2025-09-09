@@ -3,6 +3,7 @@ package com.dsa360.api.serviceimpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +23,18 @@ public class TenantServiceImpl implements TenantService {
 	private TenantDao tenantDao;
 
 	
+	@Value("${tenant.dbUsername}")
+	private String dbUsername;
+	@Value("${tenant.dbPassword}")
+	private String dbPassword;
+
+	
 
 	@Override
 	@Transactional("masterTransactionManager")
 	public String createTenant(String tenantName) {
 		String tenantId = DynamicID.getGeneratedTenantId(tenantName);
-		String dbUsername = "root";
-		String dbPassword = "admin";
+		
 
 		try {
 			// Save tenant metadata in master database
