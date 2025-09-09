@@ -17,7 +17,7 @@ pipeline {
         stage('Get Code') {
             steps {
                 echo "Cloning the repository..."
-                git branch: 'main', url: 'https://github.com/the-kiran-academy/DSA360_API.git'
+                git branch: 'main', url: 'https://github.com/TKA-DSA360/DSA360_API.git'
             }
         }
 
