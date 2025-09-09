@@ -1,9 +1,6 @@
 package com.dsa360.api.daoimpl;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 import javax.transaction.Transactional;
 
@@ -13,6 +10,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.constants.ApprovalStatus;
@@ -26,6 +24,7 @@ import com.dsa360.api.entity.SystemUserEntity;
 public class DSAUserMetricsDaoImpl implements DSAUserMetricsDao {
 
 	@Autowired
+	@Qualifier("tenantSessionFactory")
 	private SessionFactory sessionFactory;
 
 	@Override

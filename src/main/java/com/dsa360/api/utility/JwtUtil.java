@@ -18,7 +18,6 @@ import com.dsa360.api.constants.JwtConstant;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -29,63 +28,73 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Component
 public class JwtUtil implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public String getUsernameFromToken(String token) {
-		return getClaimFromToken(token, Claims::getSubject);
-	}
+    public String getUsernameFromToken(String token) {
+        return getClaimFromToken(token, Claims::getSubject);
+    }
 
-	public Date getExpirationDateFromToken(String token) {
-		return getClaimFromToken(token, Claims::getExpiration);
-	}
+    public Date getExpirationDateFromToken(String token) {
+        return getClaimFromToken(token, Claims::getExpiration);
+    }
 
-	public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-		final var claims = getAllClaimsFromToken(token);
-		return claimsResolver.apply(claims);
-	}
+    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+        final var claims = getAllClaimsFromToken(token);
+        return claimsResolver.apply(claims);
+    }
 
-	private Claims getAllClaimsFromToken(String token) {
-		return Jwts.parser().setSigningKey(JwtConstant.SIGNING_KEY.getValue()).parseClaimsJws(token).getBody();
-	}
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser().setSigningKey(JwtConstant.SIGNING_KEY.getValue()).parseClaimsJws(token).getBody();
+    }
 
-	private Boolean isTokenExpired(String token) {
-		final var expiration = getExpirationDateFromToken(token);
-		return expiration.before(new Date());
-	}
+    private Boolean isTokenExpired(String token) {
+        final var expiration = getExpirationDateFromToken(token);
+        return expiration.before(new Date());
+    }
 
-	public String generateToken(Authentication authentication) {
-		final String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-				.collect(Collectors.joining(","));
+    public String generateToken(Authentication authentication, String tenantId, String userType) {
+        final String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
 
-		return Jwts.builder().setSubject(authentication.getName())
-				.claim(JwtConstant.AUTHORITIES_KEY.getValue().toString(), authorities)
-				.signWith(SignatureAlgorithm.HS256, JwtConstant.SIGNING_KEY.getValue().toString())
-				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis()
-						+ Long.parseLong(JwtConstant.ACCESS_TOKEN_VALIDITY_SECONDS.getValue())))
+        return Jwts.builder().setSubject(authentication.getName())
+                .claim(JwtConstant.AUTHORITIES_KEY.getValue().toString(), authorities)
+                .claim("tenantId", tenantId)
+                .claim("userType", userType) // New claim
+                .signWith(SignatureAlgorithm.HS256, JwtConstant.SIGNING_KEY.getValue().toString())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis()
+                        + Long.parseLong(JwtConstant.ACCESS_TOKEN_VALIDITY_SECONDS.getValue())))
 
-				.compact();
-	}
+                .compact();
+    }
 
-	public Boolean validateToken(String token, UserDetails userDetails) {
-		final String username = getUsernameFromToken(token);
-		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-	}
+    public String getTenantIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("tenantId", String.class));
+    }
 
-	public UsernamePasswordAuthenticationToken getAuthentication(final String token, final Authentication existingAuth,
-			final UserDetails userDetails) {
+    // New method for userType
+    public String getUserTypeFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("userType", String.class));
+    }
 
-		final var jwtParser = Jwts.parser().setSigningKey(JwtConstant.SIGNING_KEY.getValue());
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String username = getUsernameFromToken(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
 
-		final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
+    public UsernamePasswordAuthenticationToken getAuthentication(final String token, final Authentication existingAuth,
+            final UserDetails userDetails) {
 
-		final var claims = claimsJws.getBody();
+        final var jwtParser = Jwts.parser().setSigningKey(JwtConstant.SIGNING_KEY.getValue());
 
-		final Collection<? extends GrantedAuthority> authorities = Arrays
-				.stream(claims.get(JwtConstant.AUTHORITIES_KEY.getValue()).toString().split(","))
-				.map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
 
-		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
-	}
+        final var claims = claimsJws.getBody();
 
+        final Collection<? extends GrantedAuthority> authorities = Arrays
+                .stream(claims.get(JwtConstant.AUTHORITIES_KEY.getValue()).toString().split(","))
+                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+
+        return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
+    }
 }

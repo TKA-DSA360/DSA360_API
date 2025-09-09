@@ -11,6 +11,8 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.dao.CustomerDao;
@@ -25,11 +27,9 @@ import com.dsa360.api.exceptions.SomethingWentWrongException;
 public class CustomerDaoImpl implements CustomerDao {
 	private static final Logger logger = LoggerFactory.getLogger(CustomerDaoImpl.class);
 
+	@Autowired
+	@Qualifier("tenantSessionFactory")
 	private SessionFactory sessionFactory;
-
-	public CustomerDaoImpl(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
 
 	@Override
 	public void createCustomer(CustomerEntity customerEntity) {
@@ -129,7 +129,7 @@ public class CustomerDaoImpl implements CustomerDao {
 
 	@Override
 	public String checkLoanEligibility(String customerId) {
-		
+
 		return null;
 
 	}
@@ -167,55 +167,46 @@ public class CustomerDaoImpl implements CustomerDao {
 			throw new RuntimeException("Failed to fetch all customers", e);
 		}
 	}
-	
-	
+
 	@Override
 	public List<CustomerEntity> getCustomersByDsaAgentId(String dsaAgentId) {
-	    try (Session session = sessionFactory.openSession()) {
-	        Transaction tx = session.beginTransaction();
+		try (Session session = sessionFactory.openSession()) {
+			Transaction tx = session.beginTransaction();
 
-	        // Step 1: Load customers for the given DSA Agent ID
-	        String customerQuery = "FROM CustomerEntity c LEFT JOIN FETCH c.dsaAgentId d WHERE d.id = :dsaId";
-	        List<CustomerEntity> customers = session
-	                .createQuery(customerQuery, CustomerEntity.class)
-	                .setParameter("dsaId", dsaAgentId)
-	                .getResultList();
+			// Step 1: Load customers for the given DSA Agent ID
+			String customerQuery = "FROM CustomerEntity c LEFT JOIN FETCH c.dsaAgentId d WHERE d.id = :dsaId";
+			List<CustomerEntity> customers = session.createQuery(customerQuery, CustomerEntity.class)
+					.setParameter("dsaId", dsaAgentId).getResultList();
 
-	        // Step 2: For each customer, load loan applications and documents
-	        for (CustomerEntity customer : customers) {
-	            String customerId = customer.getId();
+			// Step 2: For each customer, load loan applications and documents
+			for (CustomerEntity customer : customers) {
+				String customerId = customer.getId();
 
-	            // Load loan applications
-	            String loanQuery = "FROM LoanApplicationEntity l WHERE l.customer.id = :id";
-	            Set<LoanApplicationEntity> loanApplications = new HashSet<>(
-	                    session.createQuery(loanQuery, LoanApplicationEntity.class)
-	                           .setParameter("id", customerId)
-	                           .getResultList()
-	            );
-	            customer.setLoanApplications(loanApplications);
+				// Load loan applications
+				String loanQuery = "FROM LoanApplicationEntity l WHERE l.customer.id = :id";
+				Set<LoanApplicationEntity> loanApplications = new HashSet<>(
+						session.createQuery(loanQuery, LoanApplicationEntity.class).setParameter("id", customerId)
+								.getResultList());
+				customer.setLoanApplications(loanApplications);
 
-	            // Load documents
-	            String docQuery = "FROM DocumentEntity d WHERE d.customer.id = :id";
-	            Set<DocumentEntity> documents = new HashSet<>(
-	                    session.createQuery(docQuery, DocumentEntity.class)
-	                           .setParameter("id", customerId)
-	                           .getResultList()
-	            );
-	            customer.setDocuments(documents);
-	        }
+				// Load documents
+				String docQuery = "FROM DocumentEntity d WHERE d.customer.id = :id";
+				Set<DocumentEntity> documents = new HashSet<>(session.createQuery(docQuery, DocumentEntity.class)
+						.setParameter("id", customerId).getResultList());
+				customer.setDocuments(documents);
+			}
 
-	        tx.commit();
-	        return customers;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        throw new RuntimeException("Failed to fetch customers for DSA Agent ID: " + dsaAgentId, e);
-	    }
+			tx.commit();
+			return customers;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed to fetch customers for DSA Agent ID: " + dsaAgentId, e);
+		}
 	}
-
 
 	@Override
 	public CustomerEntity updateCustomer(CustomerEntity customerEntity) {
-		
+
 		try (var session = sessionFactory.openSession()) {
 			session.update(customerEntity);
 			session.beginTransaction().commit();

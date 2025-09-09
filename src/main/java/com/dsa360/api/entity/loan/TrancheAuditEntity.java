@@ -34,5 +34,5 @@ public class TrancheAuditEntity extends BaseEntity {
     @Lob
     private String data;
 
-    // getters/setters
+    
 }

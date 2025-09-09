@@ -25,6 +25,7 @@ services:
       
     networks:
       springboot-mysql-network:
+   
     restart: on-failure
       
     environment:

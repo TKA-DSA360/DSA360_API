@@ -87,6 +87,7 @@ public class DSAApplicationDTO {
 	private String referralSource;
 	
 	private String approvalStatus = ApprovalStatus.PENDING.getValue();
+	
 	private boolean emailVerified;
 
 }

@@ -10,24 +10,17 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * @author RAM
- */
 @Entity
 @Table(name = "role")
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleEntity extends  BaseEntity{
-	@Id
-	private String id;
+public class RoleEntity extends BaseEntity implements Role {
+    @Id
+    @Column(name = "id")
+    private String id;
 
-	@Column(name = "name", nullable = false, unique = true)
-	private String name;
-
-	public RoleEntity(String id) {
-		this.id = id;
-	}
-
+    @Column(name = "name", unique = true, nullable = false)
+    private String name;
 }

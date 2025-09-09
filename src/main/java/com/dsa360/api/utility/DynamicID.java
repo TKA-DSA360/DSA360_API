@@ -34,7 +34,7 @@ public class DynamicID {
 	}
 
 	public static String getGeneratedDocumentId() {
-		//DOC-20250101123456789
+		// DOC-20250101123456789
 		return "DOC-" + getGeneratedId();
 	}
 
@@ -43,7 +43,7 @@ public class DynamicID {
 		int uniqueNumber = 1 + random.nextInt(999999);
 		int currentYear = LocalDate.now().getYear();
 		String initials = (firstName.substring(0, 1) + lastName.substring(0, 1)).toUpperCase();
-		
+
 		return "CUST-" + currentYear + "-" + initials + String.format("%06d", uniqueNumber);
 	}
 
@@ -63,24 +63,28 @@ public class DynamicID {
 		// REG-20250101123445734
 		return "REG-" + getGeneratedId();
 	}
+
 	public static String getGeneratedDisbursementId() {
 		// DISB-2025-000001
 		int uniqueNumber = 1 + random.nextInt(999999);
 		int currentYear = LocalDate.now().getYear();
 		return "DISB-" + currentYear + "-" + String.format("%05d", uniqueNumber);
 	}
+
 	public static String getGeneratedLoanDisbursementId() {
 		// LD-2025-000001
 		int uniqueNumber = 1 + random.nextInt(999999);
 		int currentYear = LocalDate.now().getYear();
 		return "LD-" + currentYear + "-" + String.format("%05d", uniqueNumber);
 	}
+
 	public static String getGeneratedLoanApplicationId() {
 		// LA-2025-000001
 		int uniqueNumber = 1 + random.nextInt(999999);
 		int currentYear = LocalDate.now().getYear();
 		return "LA-" + currentYear + "-" + String.format("%05d", uniqueNumber);
 	}
+
 // Tranche
 	public static String getGeneratedTrancheId() {
 		// TR-20250101127845789
@@ -103,9 +107,39 @@ public class DynamicID {
 		int currentYear = LocalDate.now().getYear();
 		return "REP-" + currentYear + "-" + String.format("%05d", uniqueNumber);
 	}
-	// 
+
+	//
 	public static String getGeneratedReconciliationId() {
 		// REC-20250101345845789
 		return "REC-" + getGeneratedId();
 	}
+
+	public static String getGeneratedSubscriptionPlanId(String type) {
+		// BASIC-001
+		type = type.trim().toUpperCase();
+		int uniqueNumber = 1 + random.nextInt(999);
+		return type + "-" + uniqueNumber;
+	}
+	
+	// Tenant ID
+	public static String getGeneratedTenantId(String tenantName) {
+		// TEN-2025-AS123456
+		int currentYear = LocalDate.now().getYear();
+		String initials = tenantName.length() >= 2 ? tenantName.substring(0, 2).toUpperCase()
+				: tenantName.substring(0, 1).toUpperCase() + "X";
+
+		int uniqueNumber = 100000 + random.nextInt(900000);
+
+		return "TEN-" + currentYear + "-" + initials + uniqueNumber;
+	}
+	
+	// Subscription ID
+	public static String getGeneratedSubscriptionId() {
+		// SUB-2025-000001
+		int uniqueNumber = 1 + random.nextInt(999999);
+		int currentYear = LocalDate.now().getYear();
+		return "SUB-" + currentYear + "-" + String.format("%05d", uniqueNumber);
+		
+	}
+	
 }

@@ -6,6 +6,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.dao.ReportDao;
@@ -21,6 +22,7 @@ import com.dsa360.api.exceptions.ResourceNotFoundException;
 public class ReportDaoImpl implements ReportDao {
 
 	@Autowired
+	@Qualifier("tenantSessionFactory")
 	private SessionFactory sessionFactory;
 	
 	@Override

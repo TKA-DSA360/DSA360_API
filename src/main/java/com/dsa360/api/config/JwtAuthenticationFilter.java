@@ -28,60 +28,66 @@ import io.jsonwebtoken.SignatureException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	@Autowired
-	private UserDetailsService userDetailsService;
-	private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    @Autowired
+    private UserDetailsService userDetailsService;
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-	@Autowired
-	private JwtUtil jwtTokenUtil;
+    @Autowired
+    private JwtUtil jwtTokenUtil;
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-			throws IOException, ServletException {
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+            throws IOException, ServletException {
 
-		String header = req.getHeader(JwtConstant.HEADER_STRING.getValue());
+        String header = req.getHeader(JwtConstant.HEADER_STRING.getValue());
 
-		String username = null;
-		String authToken = null;
-		if (header != null && header.startsWith(JwtConstant.TOKEN_PREFIX.getValue())) {
+        String username = null;
+        String authToken = null;
+        String tenantId = null;
+        String userType = null; // New
+        if (header != null && header.startsWith(JwtConstant.TOKEN_PREFIX.getValue())) {
 
-			// header= Bearer
-			// eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYW0iLCJzY29wZXMiOiJST0xFX0FETUlOIiwiaWF0IjoxNjgxMTEyOTUyLCJleHAiOjE2ODExMzA5NTJ9.SHNB6bgI_HgWFBZyhNnG0nQO7SWvJLfaxmSDAeRkZiw
-			// token =
-			// eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYW0iLCJzY29wZXMiOiJST0xFX0FETUlOIiwiaWF0IjoxNjgxMTEyOTUyLCJleHAiOjE2ODExMzA5NTJ9.SHNB6bgI_HgWFBZyhNnG0nQO7SWvJLfaxmSDAeRkZiw
+            authToken = header.replace(JwtConstant.TOKEN_PREFIX.getValue(), "");
 
-			authToken = header.replace(JwtConstant.TOKEN_PREFIX.getValue(), "");
+            try {
+                username = jwtTokenUtil.getUsernameFromToken(authToken);
+                tenantId = jwtTokenUtil.getTenantIdFromToken(authToken);
+                userType = jwtTokenUtil.getUserTypeFromToken(authToken); // New
+            } catch (IllegalArgumentException e) {
+                throw new SomethingWentWrongException("Facing Issue while getting username from token.");
+            } catch (ExpiredJwtException e) {
+                throw new TokenExpirationException("Your session has been expired. Please log in again.");
+            } catch (SignatureException e) {
+                throw new SomethingWentWrongException("Invalid Signature . Please log in agains.");
+            }
 
-			try {
-				username = jwtTokenUtil.getUsernameFromToken(authToken);
+        } else {
+            log.warn("Couldn't find bearer string, will ignore the header! Logged in with credentials.");
+        }
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-			} catch (IllegalArgumentException e) {
-				throw new SomethingWentWrongException("Facing Issue while getting username from token.");
-			} catch (ExpiredJwtException e) {
-				throw new TokenExpirationException("Your session has been expired. Please log in again.");
-			} catch (SignatureException e) {
-				throw new SomethingWentWrongException("Invalid Signature . Please log in agains.");
-			}
+            var userDetails = userDetailsService.loadUserByUsername(username);
 
-			
+            Boolean isValidated = jwtTokenUtil.validateToken(authToken, userDetails); 
+            if (Boolean.TRUE.equals(isValidated)) {
+                UsernamePasswordAuthenticationToken authentication = jwtTokenUtil.getAuthentication(authToken,
+                        SecurityContextHolder.getContext().getAuthentication(), userDetails);
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                log.info("Authenticated user {}, setting security context", username);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }
 
-		} else {
-			logger.warn("Couldn't find bearer string, will ignore the header! Logged in with credentials.");
-		}
-		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (tenantId != null) {
+            TenantContext.setCurrentTenant(tenantId);
+        } else if ("master".equals(userType)) {
+            TenantContext.setCurrentTenant("master"); // Ensure master context
+        }
 
-			var userDetails = userDetailsService.loadUserByUsername(username);
-
-			Boolean isValidated = jwtTokenUtil.validateToken(authToken, userDetails); 
-			if (Boolean.TRUE.equals(isValidated)) {
-				UsernamePasswordAuthenticationToken authentication = jwtTokenUtil.getAuthentication(authToken,
-						SecurityContextHolder.getContext().getAuthentication(), userDetails);
-				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-				log.info("Authenticated user {}, setting security context", username);
-				SecurityContextHolder.getContext().setAuthentication(authentication);
-			}
-		}
-
-		chain.doFilter(req, res);
-	}
+        try {
+            chain.doFilter(req, res);
+        } finally {
+            TenantContext.clear();
+        }
+    }
 }

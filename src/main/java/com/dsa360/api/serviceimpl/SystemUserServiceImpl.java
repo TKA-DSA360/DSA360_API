@@ -47,6 +47,7 @@ public class SystemUserServiceImpl implements SystemUserService {
 	private DSADao dsaDao;
 
 	@Override
+	@Transactional("tenantTransactionManager")
 	public CustomUserDetail loadUserByUserId(String userId) {
 		var customUserDetail = dao.loadUserByUserId(userId);
 

@@ -1,6 +1,7 @@
 package com.dsa360.api.serviceimpl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.stream.Collectors;
 import javax.validation.ValidationException;
 
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,48 +34,76 @@ import com.dsa360.api.exceptions.ResourceNotFoundException;
 import com.dsa360.api.exceptions.SomethingWentWrongException;
 import com.dsa360.api.service.LoanDisbursementService;
 
-
 @Service
 public class LoanDisbursementServiceImpl implements LoanDisbursementService {
 
-    private final LoanDisbursementDao dao;
-    private final SessionFactory sessionFactory;
+    private static final BigDecimal HUNDRED = new BigDecimal("100");
+    private static final RoundingMode MONEY_ROUNDING = RoundingMode.HALF_UP;
 
-    public LoanDisbursementServiceImpl(LoanDisbursementDao dao, SessionFactory sessionFactory) {
-        this.dao = dao;
-        this.sessionFactory = sessionFactory;
-    }
+    @Autowired
+    private  LoanDisbursementDao dao;
+    
+    @Autowired
+    @Qualifier("tenantSessionFactory")
+    private  SessionFactory sessionFactory;
+
+    
+
+    /* ============================ Disbursement ============================ */
 
     @Override
     @Transactional
     public DisbursementResponseDTO createDisbursement(String loanApplicationId, DisbursementRequestDTO request) {
         if (request == null) throw new ValidationException("Disbursement request required");
 
-        LoanApplicationEntity loan = sessionFactory.getCurrentSession().get(LoanApplicationEntity.class, loanApplicationId);
+        LoanApplicationEntity loan = sessionFactory.getCurrentSession()
+                .get(LoanApplicationEntity.class, loanApplicationId);
         if (loan == null) throw new ResourceNotFoundException("Loan not found: " + loanApplicationId);
 
+        if (request.getSanctionedAmount() == null || request.getSanctionedAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ValidationException("Sanctioned amount must be positive");
+        }
+        if (request.getFeesPercentage() == null
+                || request.getFeesPercentage().compareTo(BigDecimal.ZERO) < 0
+                || request.getFeesPercentage().compareTo(HUNDRED) > 0) {
+            throw new ValidationException("Fees percentage must be between 0 and 100");
+        }
+
+        // Calculate fees and net amount (scale = 2)
+        BigDecimal fees = request.getSanctionedAmount()
+                .multiply(request.getFeesPercentage())
+                .divide(HUNDRED, 2, MONEY_ROUNDING);
+
+        BigDecimal netDisbursedAmount = request.getSanctionedAmount().subtract(fees).setScale(2, MONEY_ROUNDING);
+        if (netDisbursedAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ValidationException("Net disbursed amount must be > 0");
+        }
+
+        // Create disbursement
         DisbursementEntity disb = new DisbursementEntity();
         disb.setLoanApplication(loan);
-        disb.setSanctionedAmount(request.getSanctionedAmount());
-        disb.setFees(request.getFees());
-        disb.setNetDisbursedAmount(request.getNetDisbursedAmount());
+        disb.setSanctionedAmount(request.getSanctionedAmount().setScale(2, MONEY_ROUNDING));
+        disb.setFees(fees);
+        disb.setNetDisbursedAmount(netDisbursedAmount);
         disb.setDisbursementDate(LocalDate.now());
         dao.saveDisbursement(disb);
 
-        // ensure summary exists
+        // Ensure summary exists for the loan (one row per loan)
         LoanDisbursementEntity summary = dao.findLoanDisbursementByLoanId(loanApplicationId);
         if (summary == null) {
             summary = new LoanDisbursementEntity();
             summary.setLoanApplication(loan);
-            summary.setTotalDisbursed(0.0);
+            summary.setTotalDisbursed(BigDecimal.ZERO.setScale(2, MONEY_ROUNDING));
             dao.saveLoanDisbursement(summary);
         }
 
-        // audit
+        // Audit
         saveAudit(disb, "CREATED", "system", "Disbursement created");
 
         return toDisbursementResponse(disb);
     }
+
+    /* ============================== Tranches ============================== */
 
     @Override
     @Transactional
@@ -84,27 +115,29 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
         DisbursementEntity disb = dao.findDisbursementById(disbursementId);
         if (disb == null) throw new ResourceNotFoundException("Disbursement not found: " + disbursementId);
 
-        // idempotency: if key provided, return existing
+        // Idempotency: return existing if present
         if (request.getIdempotencyKey() != null) {
             TrancheEntity existing = dao.findByDisbursementIdAndIdempotencyKey(disbursementId, request.getIdempotencyKey());
             if (existing != null) return toTrancheResponse(existing);
         }
 
-        // validate sum of tranches <= netDisbursed
-        BigDecimal existingSum = BigDecimal.ZERO;
-        if (disb.getTranches() != null) {
-            for (TrancheEntity t : disb.getTranches()) {
-                existingSum = existingSum.add(t.getTrancheAmount() != null ? t.getTrancheAmount() : BigDecimal.ZERO);
-            }
-        }
-        BigDecimal allowed = disb.getNetDisbursedAmount() != null ? disb.getNetDisbursedAmount().subtract(existingSum) : BigDecimal.ZERO;
-        if (request.getTrancheAmount().compareTo(allowed) > 0) {
+        // Validate sum of existing tranches <= netDisbursed
+        BigDecimal existingSum = (disb.getTranches() == null ? BigDecimal.ZERO :
+                disb.getTranches().stream()
+                        .map(t -> t.getTrancheAmount() != null ? t.getTrancheAmount() : BigDecimal.ZERO)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add))
+                .setScale(2, MONEY_ROUNDING);
+
+        BigDecimal allowed = (disb.getNetDisbursedAmount() == null ? BigDecimal.ZERO : disb.getNetDisbursedAmount())
+                .subtract(existingSum).setScale(2, MONEY_ROUNDING);
+
+        if (request.getTrancheAmount().setScale(2, MONEY_ROUNDING).compareTo(allowed) > 0) {
             throw new SomethingWentWrongException("Tranche exceeds available disbursement. Allowed: " + allowed);
         }
 
         TrancheEntity tranche = new TrancheEntity();
         tranche.setDisbursement(disb);
-        tranche.setTrancheAmount(request.getTrancheAmount());
+        tranche.setTrancheAmount(request.getTrancheAmount().setScale(2, MONEY_ROUNDING));
         tranche.setTrancheDate(request.getTrancheDate() != null ? request.getTrancheDate() : LocalDate.now());
         tranche.setStatus(TrancheStatus.PENDING);
         tranche.setInitiatedBy(request.getInitiatedBy());
@@ -113,7 +146,7 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
 
         dao.saveTranche(tranche);
 
-        saveAudit(tranche, "TRANCHE_CREATED", request.getInitiatedBy(), "Tranche created with idempotencyKey:" + request.getIdempotencyKey());
+        saveAudit(tranche, "TRANCHE_CREATED", request.getInitiatedBy(), "Tranche created idempotencyKey:" + request.getIdempotencyKey());
 
         return toTrancheResponse(tranche);
     }
@@ -124,7 +157,9 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
         TrancheEntity tranche = dao.findTrancheById(trancheId);
         if (tranche == null) throw new ResourceNotFoundException("Tranche not found: " + trancheId);
 
-        if (tranche.getStatus() == TrancheStatus.SUCCESS) throw new SomethingWentWrongException("Tranche already successful");
+        if (tranche.getStatus() == TrancheStatus.SUCCESS)
+            throw new SomethingWentWrongException("Tranche already successful");
+
         tranche.setExternalTransactionId(externalTxnId);
         tranche.setStatus(TrancheStatus.INITIATED);
         tranche.setInitiatedBy(initiatedBy);
@@ -150,23 +185,20 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
         tranche.setConfirmedAt(LocalDateTime.now());
         dao.saveTranche(tranche);
 
-        // update aggregate summary (optimistic lock safe)
+        // Update aggregate summary (sum all CONFIRMED tranches across the loan)
         DisbursementEntity disb = tranche.getDisbursement();
         LoanApplicationEntity loan = disb.getLoanApplication();
-        LoanDisbursementEntity summary = dao.findLoanDisbursementByLoanId(loan.getId());
-        if (summary == null) {
-            summary = new LoanDisbursementEntity();
-            summary.setLoanApplication(loan);
-            summary.setTotalDisbursed(0.0);
-        }
-        double add = tranche.getTrancheAmount().doubleValue();
-        summary.setTotalDisbursed((summary.getTotalDisbursed() == null ? 0.0 : summary.getTotalDisbursed()) + add);
+        LoanDisbursementEntity summary = ensureSummary(loan);
+
+        BigDecimal total = recalcTotalDisbursed(loan.getId()); // from ALL disbursements' CONFIRMED tranches
+        summary.setTotalDisbursed(total);
         dao.saveLoanDisbursement(summary);
 
         saveAudit(tranche, "TRANCHE_CONFIRMED", confirmedBy, "Confirmed and summary updated");
-
         return toTrancheResponse(tranche);
     }
+
+    /* ============================== Repayment ============================== */
 
     @Override
     @Transactional
@@ -184,45 +216,61 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
 
         RepaymentEntity repayment = new RepaymentEntity();
         repayment.setDisbursement(disb);
-        repayment.setRepaymentAmount(request.getRepaymentAmount());
+        repayment.setRepaymentAmount(request.getRepaymentAmount().setScale(2, MONEY_ROUNDING));
         repayment.setRepaymentDate(request.getRepaymentDate() != null ? request.getRepaymentDate() : LocalDate.now());
         repayment.setPaidBy(request.getPaidBy());
 
         dao.saveRepayment(repayment);
-        // you may want to update outstanding balance here
+
+        // Note: add your outstanding balance logic here (e.g., update on Disbursement/Loan summary)
 
         return toRepaymentResponse(repayment);
     }
 
+    /* ================================ Reads ================================ */
+
     @Override
     @Transactional(readOnly = true)
     public List<DisbursementResponseDTO> getDisbursementsByLoan(String loanApplicationId) {
-        return dao.findDisbursementsByLoanId(loanApplicationId).stream().map(this::toDisbursementResponse).collect(Collectors.toList());
+        return dao.findDisbursementsByLoanId(loanApplicationId)
+                 .stream()
+                 .map(this::toDisbursementResponse)
+                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TrancheResponseDTO> getTranchesByDisbursement(String disbursementId) {
-        return dao.findTranchesByDisbursementId(disbursementId).stream().map(this::toTrancheResponse).collect(Collectors.toList());
+        return dao.findTranchesByDisbursementId(disbursementId)
+                 .stream()
+                 .map(this::toTrancheResponse)
+                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<RepaymentResponseDTO> getRepaymentsByLoan(String loanApplicationId) {
-        return dao.findRepaymentsByLoanId(loanApplicationId).stream().map(this::toRepaymentResponse).collect(Collectors.toList());
+        return dao.findRepaymentsByLoanId(loanApplicationId)
+                 .stream()
+                 .map(this::toRepaymentResponse)
+                 .collect(Collectors.toList());
     }
+
+    /* ============================ Reconciliation =========================== */
 
     @Override
     @Transactional
     public void reconcileExternalTransaction(String externalTxnId, String status, BigDecimal amount, LocalDate date) {
-        // attempt to find tranche by externalTxnId
+        // Find tranche by externalTxnId
         String hql = "from TrancheEntity t where t.externalTransactionId = :ext";
         TrancheEntity t = (TrancheEntity) sessionFactory.getCurrentSession()
-                .createQuery(hql, TrancheEntity.class).setParameter("ext", externalTxnId).uniqueResult();
+                .createQuery(hql, TrancheEntity.class)
+                .setParameter("ext", externalTxnId)
+                .uniqueResult();
 
         ReconciliationEntity recon = new ReconciliationEntity();
         recon.setExternalTxnId(externalTxnId);
-        recon.setExternalAmount(amount);
+        recon.setExternalAmount(amount != null ? amount.setScale(2, MONEY_ROUNDING) : null);
         recon.setExternalDate(date);
         recon.setReconciledAt(LocalDateTime.now());
 
@@ -233,20 +281,21 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
             return;
         }
 
-        // If found, validate amounts
-        if (t.getTrancheAmount().compareTo(amount) == 0 && "SUCCESS".equalsIgnoreCase(status)) {
+        // Found: validate amount & status
+        boolean amountMatch = amount != null && t.getTrancheAmount() != null
+                && t.getTrancheAmount().setScale(2, MONEY_ROUNDING).compareTo(amount.setScale(2, MONEY_ROUNDING)) == 0;
+        boolean statusSuccess = "SUCCESS".equalsIgnoreCase(status);
+
+        if (amountMatch && statusSuccess) {
             t.setStatus(TrancheStatus.SUCCESS);
             t.setConfirmedAt(LocalDateTime.now());
             dao.saveTranche(t);
 
-            // update summary
-            LoanDisbursementEntity summary = dao.findLoanDisbursementByLoanId(t.getDisbursement().getLoanApplication().getId());
-            if (summary == null) {
-                summary = new LoanDisbursementEntity();
-                summary.setLoanApplication(t.getDisbursement().getLoanApplication());
-                summary.setTotalDisbursed(0.0);
-            }
-            summary.setTotalDisbursed((summary.getTotalDisbursed()==null?0.0:summary.getTotalDisbursed()) + t.getTrancheAmount().doubleValue());
+            // Update summary from ALL CONFIRMED tranches of the loan
+            String loanId = t.getDisbursement().getLoanApplication().getId();
+            LoanDisbursementEntity summary = ensureSummary(t.getDisbursement().getLoanApplication());
+            BigDecimal total = recalcTotalDisbursed(loanId);
+            summary.setTotalDisbursed(total);
             dao.saveLoanDisbursement(summary);
 
             recon.setStatus("MATCHED");
@@ -263,7 +312,36 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
         }
     }
 
-    /* ---------- helpers ---------- */
+    /* ================================ Helpers ============================== */
+
+    private LoanDisbursementEntity ensureSummary(LoanApplicationEntity loan) {
+        LoanDisbursementEntity summary = dao.findLoanDisbursementByLoanId(loan.getId());
+        if (summary == null) {
+            summary = new LoanDisbursementEntity();
+            summary.setLoanApplication(loan);
+            summary.setTotalDisbursed(BigDecimal.ZERO.setScale(2, MONEY_ROUNDING));
+            dao.saveLoanDisbursement(summary);
+        }
+        return summary;
+    }
+
+    /**
+     * Sum of ALL CONFIRMED tranches (TrancheEntity) across ALL disbursements for a loan.
+     * This avoids drift and ignores PENDING/INITIATED tranches.
+     */
+    private BigDecimal recalcTotalDisbursed(String loanApplicationId) {
+        List<DisbursementEntity> disbursements = dao.findDisbursementsByLoanId(loanApplicationId);
+        BigDecimal total = BigDecimal.ZERO;
+        for (DisbursementEntity d : disbursements) {
+            if (d.getTranches() == null) continue;
+            for (TrancheEntity t : d.getTranches()) {
+                if (t.getStatus() == TrancheStatus.SUCCESS && t.getTrancheAmount() != null) {
+                    total = total.add(t.getTrancheAmount());
+                }
+            }
+        }
+        return total.setScale(2, MONEY_ROUNDING);
+    }
 
     private void saveAudit(Object obj, String event, String by, String data) {
         TrancheAuditEntity audit = new TrancheAuditEntity();
@@ -310,7 +388,7 @@ public class LoanDisbursementServiceImpl implements LoanDisbursementService {
         dto.setDisbursementId(t.getDisbursement() != null ? t.getDisbursement().getId() : null);
         dto.setTrancheAmount(t.getTrancheAmount());
         dto.setTrancheDate(t.getTrancheDate());
-        dto.setStatus(t.getStatus() != null ? t.getStatus().name() : null);
+        dto.setStatus(t.getStatus().getValue());
         dto.setExternalTransactionId(t.getExternalTransactionId());
         dto.setIdempotencyKey(t.getIdempotencyKey());
         return dto;

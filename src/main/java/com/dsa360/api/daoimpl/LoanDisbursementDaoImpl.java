@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.dsa360.api.dao.LoanDisbursementDao;
@@ -19,11 +21,11 @@ import com.dsa360.api.entity.loan.TrancheEntity;
 @Repository
 public class LoanDisbursementDaoImpl implements LoanDisbursementDao {
 
-    private final SessionFactory sessionFactory;
+	@Autowired
+	@Qualifier("tenantSessionFactory")
+    private  SessionFactory sessionFactory;
 
-    public LoanDisbursementDaoImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
+    
 
     protected Session currentSession() {
         return sessionFactory.getCurrentSession();
@@ -41,7 +43,6 @@ public class LoanDisbursementDaoImpl implements LoanDisbursementDao {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DisbursementEntity> findDisbursementsByLoanId(String loanApplicationId) {
         String hql = "from DisbursementEntity d where d.loanApplication.id = :loanId";
         return currentSession().createQuery(hql, DisbursementEntity.class)
@@ -70,7 +71,6 @@ public class LoanDisbursementDaoImpl implements LoanDisbursementDao {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<TrancheEntity> findTranchesByDisbursementId(String disbursementId) {
         String hql = "from TrancheEntity t where t.disbursement.id = :disbId";
         return currentSession().createQuery(hql, TrancheEntity.class)
@@ -84,7 +84,6 @@ public class LoanDisbursementDaoImpl implements LoanDisbursementDao {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<RepaymentEntity> findRepaymentsByLoanId(String loanApplicationId) {
         String hql = "from RepaymentEntity r where r.disbursement.loanApplication.id = :loanId";
         return currentSession().createQuery(hql, RepaymentEntity.class)
