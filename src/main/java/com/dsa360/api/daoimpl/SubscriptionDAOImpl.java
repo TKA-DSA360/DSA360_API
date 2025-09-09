@@ -31,8 +31,8 @@ public class SubscriptionDAOImpl implements SubscriptionDAO {
 
     @Override
     public List<SubscriptionEntity> findByTenantId(String tenantId) {
-        try (Session session = sessionFactory.getCurrentSession()) {
-            return session.createQuery("FROM SubscriptionEntity WHERE tenantId = :tenantId", SubscriptionEntity.class)
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM SubscriptionEntity WHERE tenant.tenantId = :tenantId", SubscriptionEntity.class)
                     .setParameter("tenantId", tenantId)
                     .getResultList();
         }

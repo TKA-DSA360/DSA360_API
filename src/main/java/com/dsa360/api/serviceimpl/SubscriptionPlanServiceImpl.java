@@ -3,6 +3,7 @@ package com.dsa360.api.serviceimpl;
 import com.dsa360.api.dao.SubscriptionPlanDAO;
 import com.dsa360.api.dto.SubscriptionPlanDTO;
 import com.dsa360.api.entity.master.SubscriptionPlanEntity;
+import com.dsa360.api.exceptions.ResourceNotFoundException;
 import com.dsa360.api.exceptions.SomethingWentWrongException;
 import com.dsa360.api.service.SubscriptionPlanService;
 import com.dsa360.api.utility.DynamicID;
@@ -46,7 +47,7 @@ public class SubscriptionPlanServiceImpl implements SubscriptionPlanService {
 	@Transactional(readOnly = true)
 	public SubscriptionPlanDTO getPlan(String planId) {
 		SubscriptionPlanEntity entity = subscriptionPlanDAO.findById(planId)
-				.orElseThrow(() -> new SomethingWentWrongException("Plan not found: " + planId));
+				.orElseThrow(() -> new ResourceNotFoundException("Plan not found: " + planId));
 		return modelMapper.map(entity, SubscriptionPlanDTO.class);
 	}
 
