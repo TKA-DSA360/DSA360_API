@@ -93,5 +93,15 @@ public class MailAsyncServices {
 		}
 
 	}
+	
+	@Async("asyncExecutor")
+	public void tenantCreationConfirmationMail(String email, String tenantName, String tenantId) {
+	    try {
+	        notificationService.tenantCreationConfirmationMail(email, tenantName, tenantId);
+	    } catch (SomethingWentWrongException e) {
+	        Throwable cause = e.getCause();
+	        throw new SomethingWentWrongException(e.getMessage(), cause);
+	    }
+	}
 
 }

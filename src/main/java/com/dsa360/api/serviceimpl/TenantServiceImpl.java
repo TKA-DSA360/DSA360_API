@@ -13,6 +13,7 @@ import com.dsa360.api.entity.master.TenantEntity;
 import com.dsa360.api.exceptions.SomethingWentWrongException;
 import com.dsa360.api.service.TenantService;
 import com.dsa360.api.utility.DynamicID;
+import com.dsa360.api.utility.MailAsyncServices;
 
 @Service
 public class TenantServiceImpl implements TenantService {
@@ -21,6 +22,9 @@ public class TenantServiceImpl implements TenantService {
 
 	@Autowired
 	private TenantDao tenantDao;
+	
+	@Autowired
+	MailAsyncServices mailAsyncServices;
 
 	
 	@Value("${tenant.dbUsername}")
@@ -32,7 +36,7 @@ public class TenantServiceImpl implements TenantService {
 
 	@Override
 	@Transactional("masterTransactionManager")
-	public String createTenant(String tenantName) {
+	public String createTenant(String tenantName,String email) {
 		String tenantId = DynamicID.getGeneratedTenantId(tenantName);
 		
 
@@ -41,6 +45,7 @@ public class TenantServiceImpl implements TenantService {
 			TenantEntity tenant = new TenantEntity();
 			tenant.setTenantId(tenantId);
 			tenant.setTenantName(tenantName);
+			tenant.setEmail(email);
 			tenant.setDbUrl("jdbc:mysql://localhost:3306/dsa360_" + tenantId + "?createDatabaseIfNotExist=true");
 			tenant.setDbUsername(dbUsername);
 			tenant.setDbPassword(dbPassword);
@@ -49,7 +54,10 @@ public class TenantServiceImpl implements TenantService {
 
 			tenantDao.save(tenant);
 			log.info("TenantEntity saved successfully in master_dsa360.tenants: tenantId={}", tenantId);
-
+			
+			// mail
+			mailAsyncServices.tenantCreationConfirmationMail(email, tenantName, tenantId);
+			
 			log.info("Tenant registered successfully: {}", tenantId);
 			return tenantId;
 		} catch (Exception e) {
