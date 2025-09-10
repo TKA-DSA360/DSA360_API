@@ -1,5 +1,5 @@
 package com.dsa360.api.service;
 
 public interface TenantService {
-	String createTenant(String  tenantName);
+	String createTenant(String  tenantName,String email);
 }

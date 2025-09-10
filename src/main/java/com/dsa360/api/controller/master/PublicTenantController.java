@@ -29,9 +29,9 @@ public class PublicTenantController {
 	private SubscriptionService subscriptionService;
 
 	@PostMapping("/register")
-	public ResponseEntity<String> registerTenant(@RequestParam String tenantName) {
+	public ResponseEntity<String> registerTenant(@RequestParam String tenantName,@RequestParam String email) {
 		TenantContext.setCurrentTenant("master");
-		String tenantId = tenantService.createTenant(tenantName);
+		String tenantId = tenantService.createTenant(tenantName,email);
 		return ResponseEntity.ok("Tenant registered with ID: " + tenantId);
 	}
 

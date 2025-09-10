@@ -268,4 +268,28 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
+	@Override
+	public void tenantCreationConfirmationMail(String email, String tenantName, String tenantId) {
+	    try {
+	        var message = mailSender.createMimeMessage();
+	        var helper = new MimeMessageHelper(message, true);
+
+	        var context = new Context();
+	        context.setVariable("tenantName", tenantName);
+	        context.setVariable("tenantId", tenantId);
+	        context.setVariable("email", email);
+
+	        String html = templateEngine.process("tenant-creation-confirmation", context);
+
+	        helper.setFrom(sender, PRODNAME);
+	        helper.setTo(email);
+	        helper.setSubject("DSA 360 : Tenant Creation Confirmation - " + tenantId);
+	        helper.setText(html, true);
+
+	        mailSender.send(message);
+	    } catch (MailSendException | MailAuthenticationException | MessagingException | UnsupportedEncodingException e) {
+	        throw new SomethingWentWrongException("Failed to send tenant creation confirmation email", e);
+	    }
+	}
+
 }

@@ -24,4 +24,6 @@ public interface NotificationService {
 			List<RoleEntity> roleEntity, List<RegionsEntity> regionsEntity);
 
 	public void emailVerificationRequestMail(String dsaId, String dsaName, String emailTo, String token);
+	
+	public void tenantCreationConfirmationMail(String tenantName, String tenantId, String email);
 }

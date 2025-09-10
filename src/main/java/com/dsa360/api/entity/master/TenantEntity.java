@@ -27,6 +27,9 @@ public class TenantEntity extends BaseEntity {
 
 	@Column(name = "tenant_name")
 	private String tenantName;
+	
+	@Column(name = "email")
+	private String email;
 
 	@Column(name = "db_url")
 	private String dbUrl;
