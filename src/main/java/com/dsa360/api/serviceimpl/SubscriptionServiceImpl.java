@@ -262,67 +262,72 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 	}
 
 	private void initializeTenantSchema(String tenantId, DataSource tenantDataSource, int maxRetries, long delayMs) {
-		TenantContext.setCurrentTenant(tenantId);
-		int attempt = 0;
-		Exception lastException = null;
+	    TenantContext.setCurrentTenant(tenantId);
+	    int attempt = 0;
+	    Exception lastException = null;
 
-		while (attempt < maxRetries) {
-			try {
-				log.info("Initializing tenant schema for tenantId={}, attempt={}", tenantId, attempt + 1);
-				StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
-						.applySetting("hibernate.connection.datasource", tenantDataSource)
-						.applySetting("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect")
-						.applySetting("hibernate.hbm2ddl.auto", "update").applySetting("hibernate.show_sql", "true")
-						.applySetting("hibernate.format_sql", "true").build();
+	    while (attempt < maxRetries) {
+	        try {
+	            log.info("Initializing tenant schema for tenantId={}, attempt={}", tenantId, attempt + 1);
+	            StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
+	                    .applySetting("hibernate.connection.datasource", tenantDataSource)
+	                    .applySetting("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect")
+	                    .applySetting("hibernate.hbm2ddl.auto", "update")
+	                    .applySetting("hibernate.show_sql", "true")
+	                    .applySetting("hibernate.format_sql", "true")
+	                    // Disable caching to prevent interference with the shared CacheManager
+	                    .applySetting("hibernate.cache.use_second_level_cache", "false")
+	                    .applySetting("hibernate.cache.use_query_cache", "false")
+	                    .build();
 
-				MetadataSources sources = new MetadataSources(registry);
-				sources.addAnnotatedClass(AuditLog.class);
-				sources.addAnnotatedClass(ContactUsEntity.class);
-				sources.addAnnotatedClass(CustomerEntity.class);
-				sources.addAnnotatedClass(DocumentEntity.class);
-				sources.addAnnotatedClass(DsaKycEntity.class);
-				sources.addAnnotatedClass(DisbursementEntity.class);
-				sources.addAnnotatedClass(LoanApplicationEntity.class);
-				sources.addAnnotatedClass(LoanConditioEntity.class);
-				sources.addAnnotatedClass(LoanDisbursementEntity.class);
-				sources.addAnnotatedClass(LoanTrancheEntity.class);
-				sources.addAnnotatedClass(ReconciliationEntity.class);
-				sources.addAnnotatedClass(RepaymentEntity.class);
-				sources.addAnnotatedClass(TrancheAuditEntity.class);
-				sources.addAnnotatedClass(TrancheEntity.class);
-				sources.addAnnotatedClass(RoleEntity.class);
-				sources.addAnnotatedClass(SystemUserEntity.class);
-				sources.addAnnotatedClass(DsaApplicationEntity.class);
-				sources.addAnnotatedClass(RegionsEntity.class);
-				sources.addPackage("com.dsa360.api.entity");
-				sources.addPackage("com.dsa360.api.entity.loan");
+	            MetadataSources sources = new MetadataSources(registry);
+	            sources.addAnnotatedClass(AuditLog.class);
+	            sources.addAnnotatedClass(ContactUsEntity.class);
+	            sources.addAnnotatedClass(CustomerEntity.class);
+	            sources.addAnnotatedClass(DocumentEntity.class);
+	            sources.addAnnotatedClass(DsaKycEntity.class);
+	            sources.addAnnotatedClass(DisbursementEntity.class);
+	            sources.addAnnotatedClass(LoanApplicationEntity.class);
+	            sources.addAnnotatedClass(LoanConditioEntity.class);
+	            sources.addAnnotatedClass(LoanDisbursementEntity.class);
+	            sources.addAnnotatedClass(LoanTrancheEntity.class);
+	            sources.addAnnotatedClass(ReconciliationEntity.class);
+	            sources.addAnnotatedClass(RepaymentEntity.class);
+	            sources.addAnnotatedClass(TrancheAuditEntity.class);
+	            sources.addAnnotatedClass(TrancheEntity.class);
+	            sources.addAnnotatedClass(RoleEntity.class);
+	            sources.addAnnotatedClass(SystemUserEntity.class);
+	            sources.addAnnotatedClass(DsaApplicationEntity.class);
+	            sources.addAnnotatedClass(RegionsEntity.class);
+	            sources.addPackage("com.dsa360.api.entity");
+	            sources.addPackage("com.dsa360.api.entity.loan");
 
-				SessionFactory sessionFactory = sources.buildMetadata().buildSessionFactory();
-				try (var session = sessionFactory.openSession()) {
-					session.beginTransaction().commit();
-				}
-				sessionFactory.close();
-				log.info("Tenant schema initialized successfully for tenantId={}", tenantId);
-				return;
-			} catch (Exception e) {
-				lastException = e;
-				log.warn("Failed to initialize tenant schema for tenantId={}, attempt={}: {}", tenantId, attempt + 1,
-						e.getMessage());
-				attempt++;
-				try {
-					Thread.sleep(delayMs);
-				} catch (InterruptedException ie) {
-					Thread.currentThread().interrupt();
-					log.error("Interrupted during retry delay for tenantId={}", tenantId);
-				}
-			} finally {
-				TenantContext.clear();
-			}
-		}
-		log.error("Failed to initialize tenant schema for tenantId={} after {} attempts", tenantId, maxRetries,
-				lastException);
-		throw new SomethingWentWrongException("Failed to initialize tenant schema for tenant: " + tenantId,
-				lastException);
+	            SessionFactory sessionFactory = sources.buildMetadata().buildSessionFactory();
+	            try (var session = sessionFactory.openSession()) {
+	                session.beginTransaction().commit();
+	            }
+	            sessionFactory.close();
+	            log.info("Tenant schema initialized successfully for tenantId={}", tenantId);
+	            return;
+	        } catch (Exception e) {
+	            lastException = e;
+	            log.warn("Failed to initialize tenant schema for tenantId={}, attempt={}: {}", tenantId, attempt + 1,
+	                    e.getMessage());
+	            attempt++;
+	            try {
+	                Thread.sleep(delayMs);
+	            } catch (InterruptedException ie) {
+	                Thread.currentThread().interrupt();
+	                log.error("Interrupted during retry delay for tenantId={}", tenantId);
+	            }
+	        } finally {
+	            TenantContext.clear();
+	        }
+	    }
+	    log.error("Failed to initialize tenant schema for tenantId={} after {} attempts", tenantId, maxRetries,
+	            lastException);
+	    throw new SomethingWentWrongException("Failed to initialize tenant schema for tenant: " + tenantId,
+	            lastException);
 	}
 
 	private void verifyTenantSchema(String tenantId, DataSource tenantDataSource) {

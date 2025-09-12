@@ -1,8 +1,12 @@
 package com.dsa360.api.entity.loan;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.dsa360.api.entity.BaseEntity;
 
@@ -18,6 +22,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "loan_condition")
+
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "com.dsa360.api.entity.loan.LoanConditioEntity")
+
 public class LoanConditioEntity extends  BaseEntity{
 
 	@Id

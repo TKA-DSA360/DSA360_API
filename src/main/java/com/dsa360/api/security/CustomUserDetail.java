@@ -1,4 +1,3 @@
-
 package com.dsa360.api.security;
 
 import com.dsa360.api.entity.Role;
@@ -11,6 +10,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Custom UserDetails implementation for multi-tenant authentication.
+ *
  * @author RAM
  */
 @SuppressWarnings("serial")
@@ -22,6 +23,7 @@ public class CustomUserDetail implements UserDetails {
     private List<? extends Role> roles; // Use Role interface
     private String status;
     private String userType; // "master" or "tenant"
+    private String tenantId; // Tenant ID for tenant users, null for master users
 
     public CustomUserDetail() {}
 
@@ -52,6 +54,7 @@ public class CustomUserDetail implements UserDetails {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public String getUsername() {
         return username;
     }
@@ -77,7 +80,7 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return "ACTIVE".equals(status);
     }
 
     @Override
@@ -99,5 +102,13 @@ public class CustomUserDetail implements UserDetails {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 }
