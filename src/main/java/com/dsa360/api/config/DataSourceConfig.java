@@ -9,10 +9,14 @@ import javax.sql.DataSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.hibernate.SessionFactory;
+import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
+import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -33,20 +37,20 @@ public class DataSourceConfig {
 
     @Bean
     @ConfigurationProperties("spring.datasource")
-     DataSourceProperties masterDataSourceProperties() {
+    DataSourceProperties masterDataSourceProperties() {
         return new DataSourceProperties();
     }
 
     @Bean
     @Qualifier("masterDataSource")
-     DataSource masterDataSource() {
+    DataSource masterDataSource() {
         return masterDataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
     }
 
     @Bean
     @Primary
     @DependsOn("masterSessionFactory")
-     DataSource routingDataSource(@Qualifier("masterDataSource") DataSource masterDataSource) {
+    DataSource routingDataSource(@Qualifier("masterDataSource") DataSource masterDataSource) {
         TenantRoutingDataSource routingDataSource = new TenantRoutingDataSource();
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put("master", masterDataSource);
@@ -64,7 +68,8 @@ public class DataSourceConfig {
                 log.info("Added tenant data source for tenantId: {}", tenant.getTenantId());
             }
         } catch (Exception e) {
-            log.warn("Failed to load tenants from master database, proceeding with only master data source: {}", e.getMessage());
+            log.warn("Failed to load tenants from master database, proceeding with only master data source: {}",
+                    e.getMessage());
         }
 
         routingDataSource.setInitialTargetDataSources(targetDataSources);
@@ -82,12 +87,12 @@ public class DataSourceConfig {
     }
 
     @Bean
-     JdbcTemplate masterJdbcTemplate(@Qualifier("masterDataSource") DataSource masterDataSource) {
+    JdbcTemplate masterJdbcTemplate(@Qualifier("masterDataSource") DataSource masterDataSource) {
         return new JdbcTemplate(masterDataSource);
     }
 
     @Bean(name = "masterSessionFactory")
-     LocalSessionFactoryBean masterSessionFactory(@Qualifier("masterDataSource") DataSource masterDataSource) {
+    LocalSessionFactoryBean masterSessionFactory(@Qualifier("masterDataSource") DataSource masterDataSource) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(masterDataSource);
         sessionFactory.setPackagesToScan("com.dsa360.api.entity.master");
@@ -102,7 +107,10 @@ public class DataSourceConfig {
 
     @Bean(name = "tenantSessionFactory")
     @DependsOn("routingDataSource")
-     LocalSessionFactoryBean tenantSessionFactory(@Qualifier("routingDataSource") DataSource routingDataSource) {
+    LocalSessionFactoryBean tenantSessionFactory(
+            @Qualifier("routingDataSource") DataSource routingDataSource,
+            @Qualifier("multiTenantConnectionProvider") MultiTenantConnectionProvider multiTenantConnectionProvider,
+            @Qualifier("currentTenantIdentifierResolver") CurrentTenantIdentifierResolver currentTenantIdentifierResolver) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(routingDataSource);
         sessionFactory.setPackagesToScan("com.dsa360.api.entity", "com.dsa360.api.entity.loan");
@@ -111,18 +119,44 @@ public class DataSourceConfig {
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "none");
         hibernateProperties.setProperty("hibernate.show_sql", "true");
         hibernateProperties.setProperty("hibernate.format_sql", "true");
+        // Multi-tenancy
+        hibernateProperties.setProperty("hibernate.multiTenancy", "DATABASE");
+        // Second-level cache properties
+        hibernateProperties.setProperty("hibernate.cache.use_second_level_cache", "true");
+        hibernateProperties.setProperty("hibernate.cache.use_query_cache", "true");
+        hibernateProperties.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.jcache.JCacheRegionFactory");
+        hibernateProperties.setProperty("hibernate.javax.cache.provider", "org.ehcache.jsr107.EhcacheCachingProvider");
+        hibernateProperties.setProperty("hibernate.javax.cache.missing_cache_strategy", "create");
+        hibernateProperties.setProperty("hibernate.javax.cache.cache_manager_uri", "classpath:ehcache.xml");
         sessionFactory.setHibernateProperties(hibernateProperties);
+        // Set multi-tenancy beans directly
+        sessionFactory.setMultiTenantConnectionProvider(multiTenantConnectionProvider);
+        sessionFactory.setCurrentTenantIdentifierResolver(currentTenantIdentifierResolver);
         return sessionFactory;
     }
 
     @Bean
     @Primary
-     PlatformTransactionManager masterTransactionManager(@Qualifier("masterSessionFactory") SessionFactory sessionFactory) {
+    PlatformTransactionManager masterTransactionManager(
+            @Qualifier("masterSessionFactory") SessionFactory sessionFactory) {
         return new HibernateTransactionManager(sessionFactory);
     }
 
     @Bean
-     PlatformTransactionManager tenantTransactionManager(@Qualifier("tenantSessionFactory") SessionFactory sessionFactory) {
+    PlatformTransactionManager tenantTransactionManager(
+            @Qualifier("tenantSessionFactory") SessionFactory sessionFactory) {
         return new HibernateTransactionManager(sessionFactory);
     }
+
+    @Bean
+    CurrentTenantIdentifierResolver currentTenantIdentifierResolver() {
+        return new CurrentTenantResolver();
+    }
+
+    @Bean
+    MultiTenantConnectionProvider multiTenantConnectionProvider(
+            @Qualifier("routingDataSource") DataSource routingDataSource) {
+        return new RoutingConnectionProvider(routingDataSource);
+    }
+    
 }

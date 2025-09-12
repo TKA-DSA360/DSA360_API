@@ -36,11 +36,15 @@ spring:
       mode: never
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
+    format-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+        multiTenancy: DATABASE
+        multi_tenant_connection_provider: multiTenantConnectionProvider
+        tenant_identifier_resolver: currentTenantIdentifierResolver
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
   mail:

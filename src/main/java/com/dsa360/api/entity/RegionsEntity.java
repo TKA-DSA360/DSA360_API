@@ -1,9 +1,13 @@
 package com.dsa360.api.entity;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +23,9 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
+
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "com.dsa360.api.entity.loan.RegionsEntity")
 public class RegionsEntity extends  BaseEntity{
 
 	@Id

@@ -1,9 +1,13 @@
 package com.dsa360.api.entity;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.dsa360.api.constants.ApprovalStatus;
 
@@ -18,6 +22,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "dsa_application")
+
+
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "com.dsa360.api.entity.DsaApplication")
 public class DsaApplicationEntity extends  BaseEntity{
 	@Id   // DSA-2025-VC652345
 	@Column(nullable = false, unique = true)

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.dsa360.api.constants.JwtConstant;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -52,7 +53,7 @@ public class JwtUtil implements Serializable {
         return expiration.before(new Date());
     }
 
-    public String generateToken(Authentication authentication, String tenantId, String userType) {
+    public String generateToken(Authentication authentication, String tenantId, String userType,String username) {
         final String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
@@ -60,6 +61,7 @@ public class JwtUtil implements Serializable {
                 .claim(JwtConstant.AUTHORITIES_KEY.getValue().toString(), authorities)
                 .claim("tenantId", tenantId)
                 .claim("userType", userType) // New claim
+                .claim("username", username)
                 .signWith(SignatureAlgorithm.HS256, JwtConstant.SIGNING_KEY.getValue().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()
@@ -78,8 +80,14 @@ public class JwtUtil implements Serializable {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    	try {
+            Jwts.parser().setSigningKey(JwtConstant.SIGNING_KEY.getValue()).parseClaimsJws(token);
+            return userDetails.getUsername().equals(getUsernameFromToken(token));
+        } catch (ExpiredJwtException e) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public UsernamePasswordAuthenticationToken getAuthentication(final String token, final Authentication existingAuth,

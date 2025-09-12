@@ -3,6 +3,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,6 +14,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.dsa360.api.entity.BaseEntity;
 
@@ -28,6 +32,10 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "disbursements")
+
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "com.dsa360.api.entity.loan.DisbursementEntity")
+
 public class DisbursementEntity extends BaseEntity {
 
     @Id

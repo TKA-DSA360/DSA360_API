@@ -2,6 +2,7 @@ package com.dsa360.api.entity;
 
 import java.util.Set;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,6 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.dsa360.api.entity.loan.LoanApplicationEntity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -25,6 +29,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "customers")
+
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "com.dsa360.api.entity.CustomerEntity")
+
 public class CustomerEntity extends  BaseEntity {
 
 	@Id
