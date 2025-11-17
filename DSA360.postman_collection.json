@@ -1,0 +1,2101 @@
+{
+	"info": {
+		"_postman_id": "f5f13ba3-d06c-420d-8f7a-2e0d5056612b",
+		"name": "DSA360",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4468909"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "master login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8091/auth/login-user?username=master_admin&password=Temp@123",
+							"host": [
+								"localhost"
+							],
+							"port": "8091",
+							"path": [
+								"auth",
+								"login-user"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "master_admin"
+								},
+								{
+									"key": "password",
+									"value": "Temp@123"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tenant login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:8091/auth/login-user?username=tenant_admin_hdfc&password=Temp@123&tenantId=TEN-2025-HD208735",
+							"host": [
+								"localhost"
+							],
+							"port": "8091",
+							"path": [
+								"auth",
+								"login-user"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "tenant_admin_hdfc"
+								},
+								{
+									"key": "password",
+									"value": "Temp@123"
+								},
+								{
+									"key": "tenantId",
+									"value": "TEN-2025-HD208735"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Master",
+			"item": [
+				{
+					"name": "Public",
+					"item": [
+						{
+							"name": "Register Tenant",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/public/tenants/register?tenantName=hdfc&email=salikramchadar@gmail.com",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"public",
+										"tenants",
+										"register"
+									],
+									"query": [
+										{
+											"key": "tenantName",
+											"value": "hdfc"
+										},
+										{
+											"key": "email",
+											"value": "salikramchadar@gmail.com"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "change plan",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tenantId\": \"TEN-2025-HD418443\",\r\n    \"planId\": \"BASIC-868\",\r\n    \"startDate\": \"2025-09-08 21:04:41\",\r\n    \"endDate\": \"2025-10-08 21:04:41\",\r\n    \"billingStatus\": \"DONE\",\r\n    \"paymentGatewayId\": \"cd72235a-4bb9-40ce-bc0e-3786bb035182\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/public/tenants/SUB-2025-600581/change-plan?newPlanId=PRO-714",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"public",
+										"tenants",
+										"SUB-2025-600581",
+										"change-plan"
+									],
+									"query": [
+										{
+											"key": "newPlanId",
+											"value": "PRO-714"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "take subscription",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tenantId\":\"ten_2025_pali_917500\",\r\n    \"planId\":\"BASIC-868\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/public/tenants/subscriptions",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"public",
+										"tenants",
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Plan",
+					"item": [
+						{
+							"name": "create basic plan",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Basic Plan\",\r\n  \"planType\":\"BASIC\",\r\n  \"description\": \"This plan is suitable for individuals and small teams.\",\r\n  \"monthlyPrice\": 499.00,\r\n  \"maxUsers\": 5,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Access to dashboard,Email support,Basic analytics\"\r\n  \r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/api/plans/create-plan",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"plans",
+										"create-plan"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create pro plan",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Pro Plan\",\r\n  \"planType\":\"PRO\",\r\n  \"description\": \"Best for startups and growing businesses with advanced needs.\",\r\n  \"monthlyPrice\": 2999.00,\r\n  \"maxUsers\": 50,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Advanced analytics,Priority email support,Team collaboration tools,Custom reports\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/api/plans/create-plan",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"plans",
+										"create-plan"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "plans",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Pro Plan\",\r\n  \"planType\":\"PRO\",\r\n  \"description\": \"Best for startups and growing businesses with advanced needs.\",\r\n  \"monthlyPrice\": 2999.00,\r\n  \"maxUsers\": 50,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Advanced analytics,Priority email support,Team collaboration tools,Custom reports\"\r\n}\r\n"
+								},
+								"url": {
+									"raw": "localhost:8091/api/plans",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"plans"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "plan by id",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Pro Plan\",\r\n  \"planType\":\"PRO\",\r\n  \"description\": \"Best for startups and growing businesses with advanced needs.\",\r\n  \"monthlyPrice\": 2999.00,\r\n  \"maxUsers\": 50,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Advanced analytics,Priority email support,Team collaboration tools,Custom reports\"\r\n}\r\n"
+								},
+								"url": {
+									"raw": "localhost:8091/api/plans/BASIC-868",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"plans",
+										"BASIC-868"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete plan",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/api/plans/PRO-525",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"plans",
+										"PRO-525"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update plan",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Basic Plan\",\r\n  \"planType\":\"BASIC\",\r\n  \"description\": \"This plan is suitable for individuals and small teams.\",\r\n  \"monthlyPrice\": 599.00,\r\n  \"maxUsers\": 6,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Access to dashboard,Email support,Basic analytics\"\r\n  \r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/api/plans/BASIC-868",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"plans",
+										"BASIC-868"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Subscription",
+					"item": [
+						{
+							"name": "by tenant",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Basic Plan\",\r\n  \"planType\":\"BASIC\",\r\n  \"description\": \"This plan is suitable for individuals and small teams.\",\r\n  \"monthlyPrice\": 599.00,\r\n  \"maxUsers\": 6,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Access to dashboard,Email support,Basic analytics\"\r\n  \r\n}\r\n"
+								},
+								"url": {
+									"raw": "localhost:8091/api/subscriptions/tenant?tenantId=TEN-2025-HD418443",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"subscriptions",
+										"tenant"
+									],
+									"query": [
+										{
+											"key": "tenantId",
+											"value": "TEN-2025-HD418443"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "by subscription id",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "master_admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"planName\": \"Basic Plan\",\r\n  \"planType\":\"BASIC\",\r\n  \"description\": \"This plan is suitable for individuals and small teams.\",\r\n  \"monthlyPrice\": 599.00,\r\n  \"maxUsers\": 6,\r\n  \"trialPeriodDays\": 14,\r\n  \"billingCycle\": \"Monthly\",\r\n  \"currency\": \"INR\",\r\n  \"features\": \"Access to dashboard,Email support,Basic analytics\"\r\n  \r\n}\r\n"
+								},
+								"url": {
+									"raw": "localhost:8091/api/subscriptions?subscriptionId=SUB-2025-600581",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"subscriptions"
+									],
+									"query": [
+										{
+											"key": "subscriptionId",
+											"value": "SUB-2025-600581"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Tenant",
+			"item": [
+				{
+					"name": "DSA",
+					"item": [
+						{
+							"name": "all dsa ids",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-all-dsa-ids",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-all-dsa-ids"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Notification",
+					"item": [
+						{
+							"name": "under review",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/sub-admin/notify-approval-status?id=20241022163156446&approvalStatus=Approved&type=application",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"sub-admin",
+										"notify-approval-status"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "20241022163156446"
+										},
+										{
+											"key": "approvalStatus",
+											"value": "Approved"
+										},
+										{
+											"key": "type",
+											"value": "application"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Sub Admin",
+					"item": [
+						{
+							"name": "notify approval status",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/sub-admin/notify-approval-status?id=20250820185905182&approvalStatus=Under Review&type=loan",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"sub-admin",
+										"notify-approval-status"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "20250820185905182"
+										},
+										{
+											"key": "approvalStatus",
+											"value": "Under Review"
+										},
+										{
+											"key": "type",
+											"value": "loan"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get all dsa application",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZW5hbnRfYWRtaW5faGRmYyIsInNjb3BlcyI6IlJPTEVfQURNSU4iLCJ0ZW5hbnRJZCI6IlRFTi0yMDI1LUhEMjA4NzM1IiwidXNlclR5cGUiOiJ0ZW5hbnQiLCJpYXQiOjE3NTc1ODgyNTEsImV4cCI6MTc1NzU4OTE1MX0.NJdQPywYIHMu9vV6AEj_qDv0RzMnmW4d9JqGS8fJzro",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/sub-admin/get-all-dsa-application",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"sub-admin",
+										"get-all-dsa-application"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get kyc",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "kiran",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/sub-admin/get-kyc-by-dsaId/20240715121203210",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"sub-admin",
+										"get-kyc-by-dsaId",
+										"20240715121203210"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "email verification",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/sub-admin/email-verification-request/DSA-2025-VC245174",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"sub-admin",
+										"email-verification-request",
+										"DSA-2025-VC245174"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "all kycs",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "kiran",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/sub-admin/get-all-kycs",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"sub-admin",
+										"get-all-kycs"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Public",
+					"item": [
+						{
+							"name": "dsa-application",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"tenantId\":\"\" ,\r\n  \"firstName\": \"Radha\",\r\n  \"middleName\": \"Rahul\",\r\n  \"lastName\": \"Waghmare\",\r\n  \"gender\": \"Female\",\r\n  \"dateOfBirth\": \"2025-09-25\",\r\n  \"nationality\": \"Indian\",\r\n  \"contactNumber\": \"98257245\",\r\n  \"emailAddress\": \"thekiranacademyojtdev@gmail.com\",\r\n  \"streetAddress\": \"14 Powai Road\",\r\n  \"city\": \"Mumbai\",\r\n  \"state\": \"Maharashtra\",\r\n  \"postalCode\": \"400076\",\r\n  \"country\": \"India\",\r\n  \"preferredLanguage\": \"Hindi\",\r\n  \"educationalQualifications\": \"Master of Business Administration\",\r\n  \"experience\": \"7 years in finance and accounting\",\r\n  \"isAssociatedWithOtherDSA\": \"NO\",\r\n  \"associatedInstitutionName\": \"NA\",\r\n  \"referralSource\": \"Job portal\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/public/dsa-application",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"public",
+										"dsa-application"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "dsa user kyc",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "passport",
+											"type": "file",
+											"src": "postman-cloud:///1ef91f84-2a60-4c30-ac7e-98dbfcf82e37"
+										},
+										{
+											"key": "drivingLicence",
+											"type": "file",
+											"src": "postman-cloud:///1ef91f83-a04e-4150-b2a9-1fedeee195f3"
+										},
+										{
+											"key": "aadharCard",
+											"type": "file",
+											"src": "postman-cloud:///1ef91f83-8731-4dc0-a382-d7de1087e564"
+										},
+										{
+											"key": "panCard",
+											"type": "file",
+											"src": "postman-cloud:///1ef91f83-7145-4110-8ab2-c09bbac00137"
+										},
+										{
+											"key": "photograph",
+											"type": "file",
+											"src": "postman-cloud:///1ef91f83-412f-47f0-a68d-e574c7515769"
+										},
+										{
+											"key": "addressProof",
+											"type": "file",
+											"src": "postman-cloud:///1ef91f82-8bd8-4280-b091-41bfd1012937"
+										},
+										{
+											"key": "bankPassbook",
+											"type": "file",
+											"src": "/C:/Users/RAM/OneDrive/Desktop/kyc data/bankpassbook.jpeg"
+										},
+										{
+											"key": "dsaApplicationId",
+											"value": "DSA-2025-RC342543",
+											"type": "text"
+										},
+										{
+											"key": "bankName",
+											"value": "HDFC",
+											"type": "text"
+										},
+										{
+											"key": "accountNumber",
+											"value": "127010192727",
+											"type": "text"
+										},
+										{
+											"key": "ifscCode",
+											"value": "HD1111",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "localhost:8091/public/syatem-user-kyc",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"public",
+										"syatem-user-kyc"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "verify email",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/public/verify-email/CUS-2025-AS405957",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"public",
+										"verify-email",
+										"CUS-2025-AS405957"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "create use profile",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "sham",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "sham",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"answer\": \"kia\",\r\n  \"dsaApplicationId\": \"DSA-2025-SG364493\",\r\n  \"password\": \"Temp@123\",\r\n  \"question\": \"fav car ?\",\r\n  \"regions\": [\r\n    \"20250312155730469\"\r\n  ],\r\n  \"roles\": [\r\n    \"20250314204252660\"\r\n  ],\r\n  \"statusReason\": \"kyc done\",\r\n  \"username\": \"sham\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/admin/create-user-profile",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"create-user-profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add role",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\":\"ROLE_ABC\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/admin/add-role",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"add-role"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get roll by id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZW5hbnRfYWRtaW5faGRmYyIsInNjb3BlcyI6IlJPTEVfQURNSU4iLCJ0ZW5hbnRJZCI6IlRFTi0yMDI1LUhEMjA4NzM1IiwidXNlclR5cGUiOiJ0ZW5hbnQiLCJ1c2VybmFtZSI6InRlbmFudF9hZG1pbl9oZGZjIiwiaWF0IjoxNzU3Njc0NzQ0LCJleHAiOjE3NTc2NzU2NDR9.C7u2FQlFi42R8UShXhMBUdNbtzu2OPIvdKjsB-OpUro",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-roll-by-id/ROLE-13539",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-roll-by-id",
+										"ROLE-13539"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get all roles",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZW5hbnRfYWRtaW5faGRmYyIsInNjb3BlcyI6IlJPTEVfQURNSU4iLCJ0ZW5hbnRJZCI6IlRFTi0yMDI1LUhEMjA4NzM1IiwidXNlclR5cGUiOiJ0ZW5hbnQiLCJpYXQiOjE3NTc1ODgyNTEsImV4cCI6MTc1NzU4OTE1MX0.NJdQPywYIHMu9vV6AEj_qDv0RzMnmW4d9JqGS8fJzro",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-all-roles",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-all-roles"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get roles by ids",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-all-roles-by-ids/?ids=20240711065859222,20240711133634949",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-all-roles-by-ids",
+										""
+									],
+									"query": [
+										{
+											"key": "ids",
+											"value": "20240711065859222,20240711133634949"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get roll by name",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-role-by-name?roleName=ROLE_ADMIN",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-role-by-name"
+									],
+									"query": [
+										{
+											"key": "roleName",
+											"value": "ROLE_ADMIN"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update roll",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"20240711133634949\",\r\n    \"name\": \"ROLE_SUB_ADMIN2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/admin/update-role",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"update-role"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add region",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Admin@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"regionName\":\"Mumbai,Andheri\",\r\n    \"regionCode\":\"MUM-AND\"\r\n\r\n}   ",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/admin/add-region",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"add-region"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get region by id",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZW5hbnRfYWRtaW5faGRmYyIsInNjb3BlcyI6IlJPTEVfQURNSU4iLCJ0ZW5hbnRJZCI6IlRFTi0yMDI1LUhEMjA4NzM1IiwidXNlclR5cGUiOiJ0ZW5hbnQiLCJpYXQiOjE3NTc1MTA0MjAsImV4cCI6MTc1NzUxMTMyMH0.TTRmFAknJAuU47SIQVXcsKeXxRlDbdWuw0XqpV9foyk",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-region-by-id?id=20240711095859111",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-region-by-id"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "20240711095859111"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get region by name",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-region-by-name?regionName=PN-KVN",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-region-by-name"
+									],
+									"query": [
+										{
+											"key": "regionName",
+											"value": "PN-KVN"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update region",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"20240711095859111\",\r\n    \"regionName\": \"Pune, Karve Nagar 2\",\r\n    \"regionCode\": \"PN-KVN\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/admin/update-region",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"update-region"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get-count",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-count",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-count"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete System User",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/delete-user/amol",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"delete-user",
+										"amol"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update user profile",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Admin@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"answer\": \"kia\",\r\n  \"createdDate\": \"2014-07-10\",\r\n  \"dsaApplicationId\": \"DSA-2025-RC342543\",\r\n  \"password\": \"Admin@11\",\r\n  \"question\": \"fav car?\",\r\n  \"regions\": [\r\n    \"20250420091448814\"\r\n  ],\r\n  \"roles\": [\r\n    \"20240711065859222\",\r\n    \"20240806162147417\"\r\n  ],\r\n  \"status\": \"Active\",\r\n  \"statusReason\": \"KYC Done\",\r\n  \"username\": \"admin\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/admin/update-user-profile",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"update-user-profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get all regions",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXN0ZXJfYWRtaW4iLCJzY29wZXMiOiJST0xFX01BU1RFUiIsInVzZXJUeXBlIjoibWFzdGVyIiwiaWF0IjoxNzU3NTY1NDYyLCJleHAiOjE3NTc1NjYzNjJ9.d4mHKyiUeYDpJmSpZVwaWFjM_LUC9crl53XavTS3VQI",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/admin/get-all-regions",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"admin",
+										"get-all-regions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "System User",
+					"item": [
+						{
+							"name": "get system user",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Admin@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/system-user/get-user-by-username/admin",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"system-user",
+										"get-user-by-username",
+										"admin"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "all user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZW5hbnRfYWRtaW5faGRmYyIsInNjb3BlcyI6IlJPTEVfQURNSU4iLCJ0ZW5hbnRJZCI6IlRFTi0yMDI1LUhENDg1OTUzIiwidXNlclR5cGUiOiJ0ZW5hbnQiLCJpYXQiOjE3NTc0Nzg2MDMsImV4cCI6MTc1NzQ3OTUwM30.U-f3bcAFsjajXLf3QEM-xJJqFaBVXIjDxUe3SF6jGKM",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/system-user/get-all-user",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"system-user",
+										"get-all-user"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Agent-Customer",
+					"item": [
+						{
+							"name": "create-customer",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\":\"Amit Sharma\",\r\n  \"email\": \"salikramchadar@gmail.com\",\r\n  \"phoneNumber\": \"9876543210\",\r\n  \"permanentAddress\": \"45, MG Road, New Delhi, Delhi, 110001\",\r\n  \"currentAddress\": \"23, Park Street, Kolkata, West Bengal, 700016\",\r\n  \"dsaAgentId\":\"DSA-2025-RC342543\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/agent/create-customer",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"create-customer"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "loan-application",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Pooja@123",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "pooja-dixit",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"customerId\": \"20250501185956227\",\r\n  \"loanAmount\": 5000000.00,\r\n  \"loanTenure\": 180,\r\n  \"loanPurpose\": \"Home\",\r\n  \"interestRate\": 9.5,\r\n  \"emi\": 64699.00,\r\n  \"paymentFrequency\": \"monthly\",\r\n  \"incomeDetails\": \"Annual income of ₹10,00,000\",\r\n  \"employmentStatus\": \"employed\",\r\n  \"loanPurposeDescription\": \"Home renovation and improvement\",\r\n  \"creditScore\": 750,\r\n  \"rejectionReason\": \"NA\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/agent/customer-loan-application",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"customer-loan-application"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PROOF_OF_IDENTITY",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "documentTypeStr",
+											"value": "Proof of Identity",
+											"type": "text"
+										},
+										{
+											"key": "file",
+											"type": "file",
+											"src": "/C:/Users/RAM/OneDrive/Desktop/kyc data/pancard.jpeg"
+										},
+										{
+											"key": "comment",
+											"value": "this is proof of identity",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "localhost:8091/agent/documents/upload/20250501185956227",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"documents",
+										"upload",
+										"20250501185956227"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PROOF_OF_ADDRESS",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "documentTypeStr",
+											"value": "Proof of Address",
+											"type": "text"
+										},
+										{
+											"key": "comment",
+											"value": "Proof of Identity.jpg",
+											"type": "text"
+										},
+										{
+											"key": "file",
+											"type": "file",
+											"src": "/C:/Users/RAM/OneDrive/Desktop/kyc data/new passport.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "localhost:8091/agent/documents/upload/20250501185956227",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"documents",
+										"upload",
+										"20250501185956227"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get customer",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/agent/get-customer/20250501185956227",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"get-customer",
+										"20250501185956227"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "customer email verification",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "sham",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/agent/email-verification-request/CUS-2025-AS405957",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"email-verification-request",
+										"CUS-2025-AS405957"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "all customer",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/agent/customers",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"customers"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "agent customers",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/agent/customers/dsa/DSA-2025-AD332283",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"customers",
+										"dsa",
+										"DSA-2025-AD332283"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update customer",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "Agent@11",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "agent",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\": \"20250505123630869\",\r\n    \"name\": \"Rajat Sharma\",\r\n    \"email\": \"rajat@gmail.com\",\r\n    \"phoneNumber\": \"9876543111\",\r\n    \"permanentAddress\": \"45, MG Road, New Delhi, Delhi, 110001\",\r\n    \"currentAddress\": \"23, Park Street, Kolkata, West Bengal, 700016\",\r\n    \"dsaAgentId\": \"DSA-2025-AD332283\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:8091/agent/customer/update",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"agent",
+										"customer",
+										"update"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Metrics",
+					"item": [
+						{
+							"name": "all",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": ""
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Report",
+					"item": [
+						{
+							"name": "financial",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "priya.gupta",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8091/api/reports/financials",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"reports",
+										"financials"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Audit",
+					"item": [
+						{
+							"name": "export csv",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "priya.gupta",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/audit-logs/export/csv",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"audit-logs",
+										"export",
+										"csv"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Disbursments",
+					"item": [
+						{
+							"name": "get by loan id",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "priya.gupta",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Temp@123",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:8091/api/loans/LA-2025-000001/disbursements",
+									"host": [
+										"localhost"
+									],
+									"port": "8091",
+									"path": [
+										"api",
+										"loans",
+										"LA-2025-000001",
+										"disbursements"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}

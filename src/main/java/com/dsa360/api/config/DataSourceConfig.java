@@ -9,14 +9,12 @@ import javax.sql.DataSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.hibernate.SessionFactory;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -121,10 +119,14 @@ public class DataSourceConfig {
         hibernateProperties.setProperty("hibernate.format_sql", "true");
         // Multi-tenancy
         hibernateProperties.setProperty("hibernate.multiTenancy", "DATABASE");
-        // Second-level cache properties
-        hibernateProperties.setProperty("hibernate.cache.use_second_level_cache", "true");
-        hibernateProperties.setProperty("hibernate.cache.use_query_cache", "true");
-        hibernateProperties.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.jcache.JCacheRegionFactory");
+        // Disable Hibernate 2nd-level and query cache at runtime to prevent
+        // cross-tenant data leakage when using a shared CacheManager. We keep
+        // cache provider configuration in place for possible future use, but
+        // L2/query caches are turned off here.
+        hibernateProperties.setProperty("hibernate.cache.use_second_level_cache", "false");
+        hibernateProperties.setProperty("hibernate.cache.use_query_cache", "false");
+        hibernateProperties.setProperty("hibernate.cache.region.factory_class",
+                "org.hibernate.cache.jcache.JCacheRegionFactory");
         hibernateProperties.setProperty("hibernate.javax.cache.provider", "org.ehcache.jsr107.EhcacheCachingProvider");
         hibernateProperties.setProperty("hibernate.javax.cache.missing_cache_strategy", "create");
         hibernateProperties.setProperty("hibernate.javax.cache.cache_manager_uri", "classpath:ehcache.xml");
@@ -158,5 +160,5 @@ public class DataSourceConfig {
             @Qualifier("routingDataSource") DataSource routingDataSource) {
         return new RoutingConnectionProvider(routingDataSource);
     }
-    
+
 }
