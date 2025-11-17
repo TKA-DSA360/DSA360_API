@@ -50,6 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String userType = null;
 
         // Extract token details
+        //hfjhgfudewm,fnofkerfdjgh
         if (header != null && header.startsWith(JwtConstant.TOKEN_PREFIX.getValue())) {
             authToken = header.replace(JwtConstant.TOKEN_PREFIX.getValue(), "");
             try {

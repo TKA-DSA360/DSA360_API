@@ -48,8 +48,8 @@ public class SystemUserServiceImpl implements SystemUserService {
 
 	@Override
 	@Transactional("tenantTransactionManager")
-	public CustomUserDetail loadUserByUserId(String userId) {
-		var customUserDetail = dao.loadUserByUserId(userId);
+	public CustomUserDetail loadUserByUserId(String userName) {
+		var customUserDetail = dao.loadUserByUserId(userName);
 
 		if (customUserDetail != null) {
 
