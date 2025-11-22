@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsa360.api.aspect.TrackExecutionTime;
+import com.dsa360.api.config.TenantContext;
 import com.dsa360.api.dao.DSADao;
 import com.dsa360.api.dto.DSAApplicationDTO;
 import com.dsa360.api.dto.DsaKycDto;
@@ -53,8 +54,10 @@ public class DSAServiceImpl implements DSAService {
 		dsaApplicationDTO.setDsaApplicationId(
 				DynamicID.generateUniqueId("DSA", dsaApplicationDTO.getFirstName(), dsaApplicationDTO.getLastName()));
 		
+		
 		var dsaApplicationEntity = mapper.map(dsaApplicationDTO, DsaApplicationEntity.class);
 
+		TenantContext.setCurrentTenant(dsaApplicationDTO.getTenantId());
 		DsaApplicationEntity registerDSA = dao.dsaApplication(dsaApplicationEntity);
 
 		if (registerDSA != null) {
@@ -89,6 +92,9 @@ public class DSAServiceImpl implements DSAService {
 
 	@Override
 	public String systemUserKyc(DsaKycDto kyc_DTO) {
+		
+		String tenantId="TEN-2025-HD951173";
+		TenantContext.setCurrentTenant(tenantId);
 
 		DSAApplicationDTO dsaApplication = getDSAById(kyc_DTO.getDsaApplicationId());
 		String kycId = null;
@@ -176,10 +182,14 @@ public class DSAServiceImpl implements DSAService {
 	@Override
 	public void verifyEmail(String dsaId, String token) {
 
+		String tenantId="TEN-2025-HD951173";
+		TenantContext.setCurrentTenant(tenantId);
+		
 		dao.verifyEmail(dsaId, token);
 	}
 
 	@Override
+	
 	public List<String> getAllApprovedDsa() {
 
 		return dao.getAllApprovedDsa();

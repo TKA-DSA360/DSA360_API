@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
 
 		var sdf = new SimpleDateFormat(General.DATE_FORMAT.getValue());
 		String formattedTime = sdf.format(new Date());
-		var exceptionRespone = new ExceptionRespone("Invalid User Password", request.getRequestURI(), formattedTime);
+		var exceptionRespone = new ExceptionRespone("Invalid User", request.getRequestURI(), formattedTime);
 		return new ResponseEntity<>(exceptionRespone, HttpStatus.UNAUTHORIZED);
 
 	}

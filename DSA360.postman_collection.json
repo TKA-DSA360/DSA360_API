@@ -173,7 +173,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"tenantId\":\"ten_2025_pali_917500\",\r\n    \"planId\":\"BASIC-868\"\r\n}",
+									"raw": "{\r\n    \"tenantId\":\"TEN-2025-HD792380\",\r\n    \"planId\":\"BASIC-868\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
