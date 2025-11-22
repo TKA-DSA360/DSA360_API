@@ -95,5 +95,7 @@ public class DsaApplicationEntity extends  BaseEntity{
 	
 	@Column(nullable = false)
 	private String approvalStatus = ApprovalStatus.PENDING.getValue();
+	
+	
 
 }

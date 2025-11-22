@@ -6,7 +6,7 @@ services:
     image: mysql:8.0.35
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: dsa360
+      MYSQL_DATABASE: master_dsa360
       MYSQL_PASSWORD: root
     ports:
       - "3307:3306" 
@@ -29,7 +29,7 @@ services:
     restart: on-failure
       
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/dsa360?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/master_dsa360?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
 

@@ -15,6 +15,10 @@ log/
 .settings
 .springBeans
 .sts4-cache
+# Secrets & local overrides
+.env
+.env.local
+.env.production
 
 ### IntelliJ IDEA ###
 .idea

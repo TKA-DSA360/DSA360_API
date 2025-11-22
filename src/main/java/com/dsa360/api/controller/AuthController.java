@@ -18,6 +18,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,7 @@ import com.dsa360.api.config.TenantContext;
 import com.dsa360.api.constants.JwtConstant;
 import com.dsa360.api.daoimpl.TenantDaoImpl;
 import com.dsa360.api.dto.LogedInUserDetailModelDto;
+import com.dsa360.api.dto.LoginRequestDto;
 import com.dsa360.api.entity.master.TenantEntity;
 import com.dsa360.api.exceptions.SomethingWentWrongException;
 import com.dsa360.api.security.CustomUserDetail;
@@ -42,137 +44,142 @@ import com.dsa360.api.utility.JwtUtil;
 @RequestMapping("/auth")
 
 public class AuthController {
-    private static Logger log = LogManager.getLogger(AuthController.class);
+	private static Logger log = LogManager.getLogger(AuthController.class);
 
-    @Autowired
-    SystemUserService userService;
+	@Autowired
+	SystemUserService userService;
 
-    @Autowired
-    CustomUserDetailService customUserDetailService;
+	@Autowired
+	CustomUserDetailService customUserDetailService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-    
+	@Autowired
+	private JwtUtil jwtUtil;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    
-    @Autowired
-    private TenantDaoImpl tenantDao;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
-    // completed
-    @PostMapping("/login-user")
-    @TrackExecutionTime
-    public ResponseEntity<LogedInUserDetailModelDto> login(@RequestParam String username, @RequestParam String password,
-                                                           @RequestParam(required = false) String tenantId, // Optional for master
-                                                           HttpServletResponse response) throws AuthenticationException {
+	@Autowired
+	private TenantDaoImpl tenantDao;
 
-        log.info("Trying to login = {} for tenant = {}", username, tenantId);
-        
-        String userType;
-        if (tenantId == null || "master".equals(tenantId)) {
-            // Master login
-            userType = "master";
-            System.out.println("Logging in as master user");
-            TenantContext.setCurrentTenant("master");
-        } else {
-            // Tenant login
-            userType = "tenant";
-           System.out.println("Logging in as tenant user for tenantId: " + tenantId);
-            TenantEntity tenant = tenantDao.findById(tenantId);
-            if (tenant == null) {
-                throw new SomethingWentWrongException("Invalid tenant ID");
-            }
-            if (!"ACTIVE".equals(tenant.getSubscriptionStatus())) {
-                throw new SomethingWentWrongException("Tenant subscription is not active");
-            }
-            TenantContext.setCurrentTenant(tenantId);
-        }
+	// completed
+	@PostMapping("/login-user")
+	@TrackExecutionTime
+	public ResponseEntity<LogedInUserDetailModelDto> login(@RequestBody LoginRequestDto loginRequest,
+			HttpServletResponse response) throws AuthenticationException {
+		
+		
+		String username = loginRequest.getUsername();
+		String password = loginRequest.getPassword();
+		String tenantId = loginRequest.getTenantId();
+		
+		log.info("Trying to login = {}  = {}", loginRequest.getUsername(), loginRequest.getTenantId());
 
-        try {
-            final var logedInUser = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(username, password));
+		String userType;
+		if (tenantId == null) {
+			// Master login
+			userType = "master";
+			System.out.println("Logging in as master user");
+			TenantContext.setCurrentTenant("master");
+		} else {
+			// Tenant login
+			userType = "tenant";
+			System.out.println("Logging in as tenant user for tenantId: " + tenantId);
+			TenantEntity tenant = tenantDao.findById(tenantId);
+			if (tenant == null) {
+				throw new SomethingWentWrongException("Invalid tenant ID");
+			}
+			if (!"ACTIVE".equals(tenant.getSubscriptionStatus())) {
+				throw new SomethingWentWrongException("Tenant subscription is not active");
+			}
+			TenantContext.setCurrentTenant(tenantId);
+		}
 
-            SecurityContextHolder.getContext().setAuthentication(logedInUser);
+		try {
+			final var logedInUser = authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+			
 
-            CustomUserDetail userDetail = (CustomUserDetail) logedInUser.getPrincipal();
-            userDetail.setUserType(userType); // Set userType
-            Collection<? extends GrantedAuthority> authorities = userDetail.getAuthorities();
+			
+			
+			SecurityContextHolder.getContext().setAuthentication(logedInUser);
 
-            List<String> roles = authorities.stream().map(authority -> authority.getAuthority().substring(5))
-                    .collect(Collectors.toList());
+			CustomUserDetail userDetail = (CustomUserDetail) logedInUser.getPrincipal();
+			userDetail.setUserType(userType); // Set userType
+			Collection<? extends GrantedAuthority> authorities = userDetail.getAuthorities();
 
-            log.info("Logged In = {} as {}", username, userType);
+			List<String> roles = authorities.stream().map(authority -> authority.getAuthority().substring(5))
+					.collect(Collectors.toList());
 
-            final String token = jwtUtil.generateToken(logedInUser, tenantId, userType,username); // Pass userType
+			log.info("Logged In = {} as {}", username, userType);
 
-            response.setHeader("token", token);
+			final String token = jwtUtil.generateToken(logedInUser, tenantId, userType, username); // Pass userType
 
-            var model = new LogedInUserDetailModelDto(userDetail.getId(), userDetail.getUsername(), roles,
-                    userDetail.getStatus(), token);
+			response.setHeader("token", token);
 
-            return new ResponseEntity<>(model, HttpStatus.OK);
-        } finally {
-            TenantContext.clear(); 
-        }
-    }
-    
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request) {
-        String header = request.getHeader(JwtConstant.HEADER_STRING.getValue());
-        if (header == null || !header.startsWith(JwtConstant.TOKEN_PREFIX.getValue())) {
-            log.warn("No bearer token found in logout request");
-            throw new SomethingWentWrongException("Missing or invalid Authorization header");
-        }
+			var model = new LogedInUserDetailModelDto(userDetail.getId(), userDetail.getUsername(), roles,
+					userDetail.getStatus(), token);
 
-        String authToken = header.replace(JwtConstant.TOKEN_PREFIX.getValue(), "");
-        String username;
-        String tenantId;
-        String userType;
+			return new ResponseEntity<>(model, HttpStatus.OK);
+		} finally {
+			TenantContext.clear();
+		}
+	}
 
-        try {
-            username = jwtUtil.getUsernameFromToken(authToken);
-            tenantId = jwtUtil.getTenantIdFromToken(authToken);
-            userType = jwtUtil.getUserTypeFromToken(authToken);
-            log.debug("Logout request for username: {}, tenantId: {}, userType: {}", username, tenantId, userType);
-        } catch (Exception e) {
-            log.error("Failed to extract token details: {}", e.getMessage());
-            throw new SomethingWentWrongException("Invalid token");
-        }
+	@PostMapping("/logout")
+	public ResponseEntity<String> logout(HttpServletRequest request) {
+		String header = request.getHeader(JwtConstant.HEADER_STRING.getValue());
+		if (header == null || !header.startsWith(JwtConstant.TOKEN_PREFIX.getValue())) {
+			log.warn("No bearer token found in logout request");
+			throw new SomethingWentWrongException("Missing or invalid Authorization header");
+		}
 
-        // Validate tenantId and userType
-        if (tenantId == null && !"master".equals(userType)) {
-            log.warn("Invalid token: missing tenantId for non-master user");
-            throw new SomethingWentWrongException("Invalid token: missing tenantId");
-        }
+		String authToken = header.replace(JwtConstant.TOKEN_PREFIX.getValue(), "");
+		String username;
+		String tenantId;
+		String userType;
 
-        // Validate against SecurityContextHolder
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !username.equals(authentication.getName()) ||
-            !(authentication.getPrincipal() instanceof CustomUserDetail)) {
-            log.warn("No valid authentication found for username: {}", username);
-            throw new SomethingWentWrongException("User not authenticated");
-        }
+		try {
+			username = jwtUtil.getUsernameFromToken(authToken);
+			tenantId = jwtUtil.getTenantIdFromToken(authToken);
+			userType = jwtUtil.getUserTypeFromToken(authToken);
+			log.debug("Logout request for username: {}, tenantId: {}, userType: {}", username, tenantId, userType);
+		} catch (Exception e) {
+			log.error("Failed to extract token details: {}", e.getMessage());
+			throw new SomethingWentWrongException("Invalid token");
+		}
 
-        CustomUserDetail userDetails = (CustomUserDetail) authentication.getPrincipal();
-        String actualTenantId = userDetails.getTenantId();
-        String actualUserType = userDetails.getUserType();
-        String expectedTenant = tenantId != null && !"master".equals(userType) ? tenantId : "master";
-        String actualTenant = "master".equals(actualUserType) ? "master" : actualTenantId;
+		// Validate tenantId and userType
+		if (tenantId == null && !"master".equals(userType)) {
+			log.warn("Invalid token: missing tenantId for non-master user");
+			throw new SomethingWentWrongException("Invalid token: missing tenantId");
+		}
 
-        if (!expectedTenant.equals(actualTenant)) {
-            log.warn("Tenant mismatch for username: {}. Expected tenant: {}, actual tenant: {}", 
-                     username, expectedTenant, actualTenant);
-            throw new SomethingWentWrongException("Tenant mismatch");
-        }
+		// Validate against SecurityContextHolder
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !username.equals(authentication.getName())
+				|| !(authentication.getPrincipal() instanceof CustomUserDetail)) {
+			log.warn("No valid authentication found for username: {}", username);
+			throw new SomethingWentWrongException("User not authenticated");
+		}
 
-        // Clear SecurityContextHolder for the current thread
-        SecurityContextHolder.clearContext();
-        log.info("User {} logged out from tenant: {}, SecurityContextHolder cleared", username, expectedTenant);
+		CustomUserDetail userDetails = (CustomUserDetail) authentication.getPrincipal();
+		String actualTenantId = userDetails.getTenantId();
+		String actualUserType = userDetails.getUserType();
+		String expectedTenant = tenantId != null && !"master".equals(userType) ? tenantId : "master";
+		String actualTenant = "master".equals(actualUserType) ? "master" : actualTenantId;
 
-        // Instruct client to discard the token
-        return ResponseEntity.ok()
-                .header("Clear-Token", "true")
-                .body("Logged out successfully. Please discard the JWT token.");
-    }
+		if (!expectedTenant.equals(actualTenant)) {
+			log.warn("Tenant mismatch for username: {}. Expected tenant: {}, actual tenant: {}", username,
+					expectedTenant, actualTenant);
+			throw new SomethingWentWrongException("Tenant mismatch");
+		}
+
+		// Clear SecurityContextHolder for the current thread
+		SecurityContextHolder.clearContext();
+		log.info("User {} logged out from tenant: {}, SecurityContextHolder cleared", username, expectedTenant);
+
+		// Instruct client to discard the token
+		return ResponseEntity.ok().header("Clear-Token", "true")
+				.body("Logged out successfully. Please discard the JWT token.");
+	}
 }

@@ -89,5 +89,8 @@ public class DSAApplicationDTO {
 	private String approvalStatus = ApprovalStatus.PENDING.getValue();
 	
 	private boolean emailVerified;
+	
+	@NotBlank(message = "NBFC Id is mandatory")
+	private String tenantId;
 
 }

@@ -63,7 +63,7 @@ public class SystemUserEntity extends  BaseEntity{
 	private List<RegionsEntity> regions;
 
 	@Column(nullable = false)
-	private String status="Active";
+	private String status="ACTIVE";
 
 	@Column
 	private String statusReason;
