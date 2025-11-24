@@ -1,0 +1,8 @@
+tenant:
+  dbUsername: root
+  dbPassword: admin
+
+spring:
+  profiles:
+    active:
+    - dev
