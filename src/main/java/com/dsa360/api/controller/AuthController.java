@@ -71,6 +71,7 @@ public class AuthController {
 		String password = loginRequest.getPassword();
 		String tenantId = loginRequest.getTenantId();
 
+		// the change line of code
 		log.info("trying  to login  for the  tenant = ", username, tenantId);
 
 		String userType;
