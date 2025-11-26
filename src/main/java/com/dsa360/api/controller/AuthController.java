@@ -1,6 +1,7 @@
 package com.dsa360.api.controller;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,16 +110,55 @@ public class AuthController {
 			log.info("Logged In = {} as {}", username, userType);
 
 			final String token = jwtUtil.generateToken(logedInUser, tenantId, userType, username); // Pass userType
+			final String refreshToken =
+	                jwtUtil.generateRefreshToken(username, tenantId, userType);
+	        response.setHeader("refreshToken", refreshToken);
 
 			response.setHeader("token", token);
 
 			var model = new LogedInUserDetailModelDto(userDetail.getId(), userDetail.getUsername(), roles,
-					userDetail.getStatus(), token);
+					userDetail.getStatus(), token,refreshToken);
 
 			return new ResponseEntity<>(model, HttpStatus.OK);
 		} finally {
 			TenantContext.clear();
 		}
+	}
+	@PostMapping("/refresh-token")
+	public ResponseEntity<?> refreshToken(@RequestParam String refreshToken) {
+
+	    try {
+	        String username = jwtUtil.getUsernameFromToken(refreshToken);
+	        String tenantId = jwtUtil.getTenantIdFromToken(refreshToken);
+	        String userType = jwtUtil.getUserTypeFromToken(refreshToken);
+
+	        // Check refresh token expiration
+	        if (jwtUtil.getExpirationDateFromToken(refreshToken).before(new Date())) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                    .body("Refresh token expired. Please login again.");
+	        }
+
+	        // Load user
+	        var userDetails = customUserDetailService.loadUserByUsername(username);
+
+	        // Create new Access Token
+	        String newAccessToken = jwtUtil.generateToken(
+	                new UsernamePasswordAuthenticationToken(
+	                        username,
+	                        null,
+	                        userDetails.getAuthorities()
+	                ),
+	                tenantId,
+	                userType,
+	                username
+	        );
+
+	        return ResponseEntity.ok(newAccessToken);
+
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                .body("Invalid refresh token");
+	    }
 	}
 
 	@PostMapping("/logout")

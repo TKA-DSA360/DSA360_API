@@ -1,4 +1,4 @@
-package com.dsa360.api.config;
+	package com.dsa360.api.config;
 
 import java.io.IOException;
 
@@ -42,7 +42,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
-
+    	// If request is for refresh token, DO NOT validate access token
+        if (req.getRequestURI().contains("/auth/refresh-token")) {
+            log.info("Skipping JWT validation for refresh token endpoint");
+            chain.doFilter(req, res);
+            return;
+        }
         String header = req.getHeader(JwtConstant.HEADER_STRING.getValue());
         String username = null;
         String authToken = null;
