@@ -13,7 +13,7 @@ public class LogedInUserDetailModelDto {
 	private List<String> roles;
 	private String status;
 	private String token;
-
+	private String refreshToken;
 	public LogedInUserDetailModelDto() {
 		// Default constructor
 	}
@@ -26,13 +26,14 @@ public class LogedInUserDetailModelDto {
 		this.status = status;
 	}
 
-	public LogedInUserDetailModelDto(String id,String username, List<String> roles, String status, String token) {
+	public LogedInUserDetailModelDto(String id,String username, List<String> roles, String status, String token,String refreshToken) {
 		super();
 		this.id=id;
 		this.username = username;
 		this.roles = roles;
 		this.status = status;
 		this.token = token;
+		this.refreshToken = refreshToken;
 	}
 
 	public LogedInUserDetailModelDto(String username, List<String> roles) {
@@ -79,6 +80,14 @@ public class LogedInUserDetailModelDto {
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+
+	public String getrefreshToken() {
+		return refreshToken;
+	}
+
+	public void setrefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
 	}
 
 }
