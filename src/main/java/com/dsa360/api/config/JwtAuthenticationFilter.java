@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,6 +27,7 @@ import com.dsa360.api.security.CustomUserDetail;
 import com.dsa360.api.utility.JwtUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureException;
 
 @Component
@@ -38,6 +40,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtTokenUtil;
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("refreshToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+    
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
@@ -60,10 +73,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } catch (IllegalArgumentException e) {
                 log.error("Failed to extract username from token: {}", e.getMessage());
                 throw new SomethingWentWrongException("Facing issue while getting username from token.");
-            } catch (ExpiredJwtException e) {
-                log.warn("Token expired for request: {}", e.getMessage());
-                throw new TokenExpirationException("Your session has been expired. Please log in again.");
-            } catch (SignatureException e) {
+            }catch (ExpiredJwtException e) {
+                log.warn("Access token expired. Trying refresh token...");
+
+                String refreshToken = getRefreshTokenFromCookie(req);
+
+                if (refreshToken != null && jwtTokenUtil.validateRefreshToken(refreshToken)) {
+
+                    String usernameFromRefresh = jwtTokenUtil.getUsernameFromToken(refreshToken);
+                    String tenantIdFromRefresh = jwtTokenUtil.getTenantIdFromToken(refreshToken);
+                    String userTypeFromRefresh = jwtTokenUtil.getUserTypeFromToken(refreshToken);
+
+                    // IMPORTANT FIX → Set tenant context
+                    if ("master".equals(userTypeFromRefresh)) {
+                        TenantContext.setCurrentTenant("master");
+                    } else {
+                        TenantContext.setCurrentTenant(tenantIdFromRefresh);
+                    }
+
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(usernameFromRefresh);
+
+                    // Generate new access token
+                    String newAccessToken = jwtTokenUtil.generateToken(
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails.getUsername(), null, userDetails.getAuthorities()
+                            ),
+                            tenantIdFromRefresh,
+                            userTypeFromRefresh,
+                            userDetails.getUsername()
+                    );
+
+                    res.setHeader("token", newAccessToken);
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    chain.doFilter(req, res);
+                    return;
+                }
+
+                throw new TokenExpirationException("Your session expired. Please log in again.");
+            }
+ catch (SignatureException e) {
                 log.error("Invalid token signature: {}", e.getMessage());
                 throw new SomethingWentWrongException("Invalid signature. Please log in again.");
             }
