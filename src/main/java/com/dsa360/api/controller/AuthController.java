@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -109,7 +110,17 @@ public class AuthController {
 			log.info("Logged In = {} as {}", username, userType);
 
 			final String token = jwtUtil.generateToken(logedInUser, tenantId, userType, username); // Pass userType
+			final String refreshToken = jwtUtil.generateRefreshToken(username, tenantId, userType);
 
+			// Set refresh token cookie
+			Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+			refreshCookie.setHttpOnly(true);
+			refreshCookie.setSecure(false); // set TRUE in production using HTTPS
+			refreshCookie.setPath("/");
+			refreshCookie.setMaxAge(60 * 60 * 1000);
+			response.addCookie(refreshCookie);
+
+			// return access token in body
 			response.setHeader("token", token);
 
 			var model = new LogedInUserDetailModelDto(userDetail.getId(), userDetail.getUsername(), roles,

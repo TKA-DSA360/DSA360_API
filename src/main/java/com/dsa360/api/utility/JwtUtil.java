@@ -69,6 +69,27 @@ public class JwtUtil implements Serializable {
 
                 .compact();
     }
+    public String generateRefreshToken(String username, String tenantId, String userType) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("tenantId", tenantId)
+                .claim("userType", userType)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() +
+                        Long.parseLong(JwtConstant.REFRESH_TOKEN_VALIDITY_MILLISECONDS.getValue())))
+                .signWith(SignatureAlgorithm.HS256, JwtConstant.SIGNING_KEY.getValue())
+                .compact();
+    }
+    public boolean validateRefreshToken(String token) {
+        try {
+            Jwts.parser()
+                    .setSigningKey(JwtConstant.SIGNING_KEY.getValue())
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 
     public String getTenantIdFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("tenantId", String.class));
