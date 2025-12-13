@@ -18,9 +18,10 @@ import lombok.NoArgsConstructor;
 public class RoleDto {
 
 	private String id;
-	
+
 	@NotBlank(message = "Role name is required")
-	@Pattern(regexp = "^ROLE_[A-Z]+(_[A-Z]+)*$", message = "Role name must start with 'ROLE_' and contain uppercase letters and underscores")
+	@Pattern(regexp = "^ROLE_(?>[A-Z]+)(?:_(?>[A-Z]+))*$", message = "Role name must start with 'ROLE_' and contain uppercase letters and underscores")
+
 	private String name;
 
 }

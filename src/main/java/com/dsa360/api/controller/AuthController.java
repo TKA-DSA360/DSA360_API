@@ -93,6 +93,7 @@ public class AuthController {
 			TenantContext.setCurrentTenant(tenantId);
 		}
 
+		// authentication manager  >  user detail service  >  custom user detail -loadUserByUsername
 		try {
 			final var logedInUser = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(username, password));
