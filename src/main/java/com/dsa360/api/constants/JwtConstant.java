@@ -5,7 +5,7 @@ public enum JwtConstant {
 	TOKEN_PREFIX("Bearer "),
 	SIGNING_KEY("MyDSA360ApplicationSigningKEY702019272609876654321"), 
 	AUTHORITIES_KEY("scopes"),
-	ACCESS_TOKEN_VALIDITY_SECONDS(String.valueOf(15 * 60 * 1000)); // 15 * 60 * 1000 in milliseconds
+	ACCESS_TOKEN_VALIDITY_SECONDS(String.valueOf(120 * 60 * 1000)); // 15 * 60 * 1000 in milliseconds
 
 	private final String value;
 

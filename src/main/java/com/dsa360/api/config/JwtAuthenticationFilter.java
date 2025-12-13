@@ -51,6 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Extract token details
         if (header != null && header.startsWith(JwtConstant.TOKEN_PREFIX.getValue())) {
+        	//eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXN0ZXJfYWRtaW4iLCJzY29wZXMiOiJST0xFX01BU1RFUiIsInVzZXJUeXBlIjoibWFzdGVyIiwidXNlcm5hbWUiOiJtYXN0ZXJfYWRtaW4iLCJpYXQiOjE3NjQwNjMwNTQsImV4cCI6MTc2NDA2Mzk1NH0.8I_IHp7ObrOxINw2lgCz1cyreYF_UiEFHa2TQG6L-lE
             authToken = header.replace(JwtConstant.TOKEN_PREFIX.getValue(), "");
             try {
                 username = jwtTokenUtil.getUsernameFromToken(authToken);

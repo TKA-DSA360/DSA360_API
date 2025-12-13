@@ -82,7 +82,6 @@ public class AdminController {
 	public ResponseEntity<RoleDto> getRollById(@PathVariable String rollId) {
 		var roleDto = adminService.getRollById(rollId);
 		return ResponseEntity.ok(roleDto);
-
 	}
 
 	@PreAuthorize("hasRole('ROLE_ADMIN')") // loadUserByUsername(username)
