@@ -14,7 +14,7 @@ services:
       - springboot-mysql-network
 
   dsa360api:
-    container_name: dsa360container
+    container_name: dsa360api
     build:
       context: ./
       dockerfile: Dockerfile
